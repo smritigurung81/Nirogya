@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "873560963281",
+    "project_id": "nirogya-84f80",
+    "storage_bucket": "nirogya-84f80.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:873560963281:android:7ba0c839ecd89b776a6df0",
+        "android_client_info": {
+          "package_name": "com.example.nirogya"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHjNnk0O5c0eLcBq6OyvYUnLDUy58iFw4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
