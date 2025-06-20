@@ -52,7 +52,13 @@ public class RegisterActivity extends AppCompatActivity {
             if (email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
                 return;
+
             }
+            if (password.length() < 6) {
+                Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
 
             mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnSuccessListener(authResult -> {
@@ -73,8 +79,10 @@ public class RegisterActivity extends AppCompatActivity {
                         }
                     })
                     .addOnFailureListener(e ->
-                            Toast.makeText(this, "Registration failed", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "Registration failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                     );
+
+
         });
 
         tvLogin.setOnClickListener(v -> startActivity(new Intent(this, MainActivity.class)));
