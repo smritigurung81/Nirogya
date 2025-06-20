@@ -1,6 +1,6 @@
 package com.example.nirogya;
 
-import android.content.Context;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AuthManager {
-    private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
+    private final FirebaseAuth mAuth;
+    private final FirebaseFirestore db;
 
     public AuthManager() {
         mAuth = FirebaseAuth.getInstance();
@@ -22,6 +22,7 @@ public class AuthManager {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
+                        assert user != null;
                         saveUserRole(user, role, callback);
                     } else {
                         callback.onFailure("Registration failed");
@@ -54,6 +55,7 @@ public class AuthManager {
 
     private void getUserRole(AuthCallback callback) {
         FirebaseUser user = mAuth.getCurrentUser();
+        assert user != null;
         db.collection("users").document(user.getUid())
                 .get()
                 .addOnCompleteListener(task -> {
