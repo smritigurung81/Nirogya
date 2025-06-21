@@ -6,8 +6,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.*;
 
 import java.util.*;
@@ -19,17 +21,27 @@ public class PatientDashboardActivity extends AppCompatActivity {
     private EditText etHeartRate, etTemperature, etOxygen;
     private EditText etCondition, etMedication, etNote;
     private EditText etAppointmentTime;
-    private EditText etDoctorId; // Changed from Spinner to EditText
+    private EditText etDoctorId;
 
     private Button btnUploadVitals, btnSaveHistory, btnBookAppointment;
 
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+    private String userId; // Remove final and don't initialize here
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_patient_dashboard);
+
+        // Check if user is authenticated
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
+            finish(); // Close this activity
+            return;
+        }
+
+        userId = currentUser.getUid(); // Set userId here after null check
 
         initUI();
         loadVitals();
@@ -39,9 +51,18 @@ public class PatientDashboardActivity extends AppCompatActivity {
 
         btnUploadVitals.setOnClickListener(v -> {
             try {
-                double heartRate = Double.parseDouble(etHeartRate.getText().toString());
-                double temperature = Double.parseDouble(etTemperature.getText().toString());
-                int oxygen = Integer.parseInt(etOxygen.getText().toString());
+                String heartRateStr = etHeartRate.getText().toString().trim();
+                String temperatureStr = etTemperature.getText().toString().trim();
+                String oxygenStr = etOxygen.getText().toString().trim();
+
+                if (heartRateStr.isEmpty() || temperatureStr.isEmpty() || oxygenStr.isEmpty()) {
+                    Toast.makeText(this, "Please fill all vital fields", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                double heartRate = Double.parseDouble(heartRateStr);
+                double temperature = Double.parseDouble(temperatureStr);
+                int oxygen = Integer.parseInt(oxygenStr);
 
                 VitalsService.uploadVitals(heartRate, temperature, oxygen);
                 Toast.makeText(this, "Vitals uploaded", Toast.LENGTH_SHORT).show();
@@ -53,8 +74,10 @@ public class PatientDashboardActivity extends AppCompatActivity {
 
                 // Refresh vitals display
                 loadVitals();
+            } catch (NumberFormatException e) {
+                Toast.makeText(this, "Please enter valid numbers", Toast.LENGTH_SHORT).show();
             } catch (Exception e) {
-                Toast.makeText(this, "Invalid input", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Error uploading vitals: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -68,20 +91,24 @@ public class PatientDashboardActivity extends AppCompatActivity {
                 return;
             }
 
-            MedicalHistoryService.updateHistory(condition, medication, note);
-            Toast.makeText(this, "History updated", Toast.LENGTH_SHORT).show();
+            try {
+                MedicalHistoryService.updateHistory(condition, medication, note);
+                Toast.makeText(this, "History updated", Toast.LENGTH_SHORT).show();
 
-            // Clear the input fields after successful save
-            etCondition.setText("");
-            etMedication.setText("");
-            etNote.setText("");
+                // Clear the input fields after successful save
+                etCondition.setText("");
+                etMedication.setText("");
+                etNote.setText("");
 
-            // Refresh medical history display
-            loadMedicalHistory();
+                // Refresh medical history display
+                loadMedicalHistory();
+            } catch (Exception e) {
+                Toast.makeText(this, "Error updating history: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
         });
 
         btnBookAppointment.setOnClickListener(v -> {
-            String doctorId = etDoctorId.getText().toString().trim(); // Get doctor ID from EditText
+            String doctorId = etDoctorId.getText().toString().trim();
             String time = etAppointmentTime.getText().toString().trim();
 
             if (doctorId.isEmpty() || time.isEmpty()) {
@@ -89,7 +116,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
                 return;
             }
 
-            // Validate doctor ID exists (optional)
+            // Validate doctor ID exists
             validateAndBookAppointment(doctorId, time);
         });
 
@@ -108,7 +135,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
         etMedication = findViewById(R.id.etMedication);
         etNote = findViewById(R.id.etNote);
         etAppointmentTime = findViewById(R.id.etAppointmentDateTime);
-        etDoctorId = findViewById(R.id.etDoctorId); // Changed from spinnerDoctorName
+        etDoctorId = findViewById(R.id.etDoctorId);
 
         btnUploadVitals = findViewById(R.id.btnUploadVitals);
         btnSaveHistory = findViewById(R.id.btnSaveHistory);
@@ -128,13 +155,18 @@ public class PatientDashboardActivity extends AppCompatActivity {
                         TextView tv = new TextView(this);
                         tv.setText("No vitals data available");
                         tv.setTextSize(14);
-                        tv.setTextColor(getResources().getColor(android.R.color.darker_gray));
+                        tv.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray));
                         vitalsDisplayLayout.addView(tv);
                     } else {
                         for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                            double heartRate = doc.getDouble("heartRate");
-                            double temperature = doc.getDouble("temperature");
-                            int oxygen = doc.getLong("oxygen").intValue();
+                            Double heartRateObj = doc.getDouble("heartRate");
+                            Double temperatureObj = doc.getDouble("temperature");
+                            Long oxygenObj = doc.getLong("oxygen");
+
+                            // Null checks
+                            double heartRate = heartRateObj != null ? heartRateObj : 0.0;
+                            double temperature = temperatureObj != null ? temperatureObj : 0.0;
+                            int oxygen = oxygenObj != null ? oxygenObj.intValue() : 0;
 
                             TextView tv = new TextView(this);
                             tv.setText("Latest Vitals:\nHR: " + heartRate + " bpm\nTemp: " + temperature + "°C\nO₂: " + oxygen + "%");
@@ -144,7 +176,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to load vitals", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Failed to load vitals: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
@@ -169,12 +201,12 @@ public class PatientDashboardActivity extends AppCompatActivity {
                         TextView tv = new TextView(this);
                         tv.setText("No medical history available");
                         tv.setTextSize(14);
-                        tv.setTextColor(getResources().getColor(android.R.color.darker_gray));
+                        tv.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray));
                         medicalHistoryLayout.addView(tv);
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to load medical history", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Failed to load medical history: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
@@ -186,12 +218,16 @@ public class PatientDashboardActivity extends AppCompatActivity {
                 .addOnSuccessListener(doc -> {
                     if (doc.exists() && "doctor".equals(doc.getString("role"))) {
                         // Doctor exists, proceed with booking
-                        AppointmentService.bookAppointment(userId, doctorId, time);
-                        Toast.makeText(this, "Appointment requested successfully!", Toast.LENGTH_SHORT).show();
+                        try {
+                            AppointmentService.bookAppointment(userId, doctorId, time);
+                            Toast.makeText(this, "Appointment requested successfully!", Toast.LENGTH_SHORT).show();
 
-                        // Clear the input fields after successful booking
-                        etDoctorId.setText("");
-                        etAppointmentTime.setText("");
+                            // Clear the input fields after successful booking
+                            etDoctorId.setText("");
+                            etAppointmentTime.setText("");
+                        } catch (Exception e) {
+                            Toast.makeText(this, "Error booking appointment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
                     } else {
                         Toast.makeText(this, "Invalid Doctor ID. Please check and try again.", Toast.LENGTH_SHORT).show();
                     }
@@ -239,5 +275,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 }
+
 
 

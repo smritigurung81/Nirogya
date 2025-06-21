@@ -21,10 +21,28 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".LoginActivity" />
-        <activity android:name=".RegisterActivity" />
-        <activity android:name=".DoctorDashboardActivity" />
-        <activity android:name=".PatientDashboardActivity" />
+
+        <!-- Add PatientDashboardActivity -->
+        <activity
+            android:name=".PatientDashboardActivity"
+            android:exported="false" />
+
+        <!-- Add other activities you might have -->
+        <activity
+            android:name=".DoctorAppointmentService"
+            android:exported="false" />
+
+        <activity
+            android:name=".DoctorDashboardActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".RegisterActivity"
+            android:exported="false" />
 
     </application>
 
