@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">Nirogya</string>
+
+    <!-- Welcome messages -->
+    <string name="welcome_patient">Welcome, Patient</string>
+
+    <!-- Vitals related strings -->
+    <string name="no_vitals_available">No vitals data available</string>
+    <string name="vitals_display">Latest Vitals:\nHR: %.1f bpm\nTemp: %.1f°C\nO₂: %d%%\nTime: %s</string>
+
+    <!-- Medical history strings -->
+    <string name="no_history_available">No medical history available</string>
+    <string name="history_display">Medical History:\nCondition: %s\nMedication: %s\nNote: %s</string>
+
+    <!-- Default values -->
+    <string name="not_available">N/A</string>
 </resources>
