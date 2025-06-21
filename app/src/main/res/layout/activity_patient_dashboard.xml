@@ -1,29 +1,246 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
-    android:padding="16dp">
+    android:background="#ffffff">
 
-    <!-- Title -->
-    <TextView
-        android:id="@+id/tvTitle"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Patient Dashboard"
-        android:textSize="24sp"
-        android:textColor="#000000"
-        android:layout_gravity="top|center_horizontal"
-        android:layout_marginTop="24dp" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <!-- Email display -->
-    <TextView
-        android:id="@+id/tvPatientEmail"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Email will appear here"
-        android:textSize="18sp"
-        android:textColor="#000000"
-        android:layout_gravity="center" />
+        <!-- App Logo and Welcome Message -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginBottom="24dp"
+            android:padding="16dp">
 
-</FrameLayout>
+            <ImageView
+                android:id="@+id/imageLogo"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/logo"
+                android:layout_marginBottom="8dp"
+                android:contentDescription="App Logo" />
+
+            <TextView
+                android:id="@+id/tvWelcomeMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Welcome Patient"
+                android:textSize="18sp"
+                android:textColor="#333333"
+                android:gravity="center" />
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#e0e0e0"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Latest Vitals Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Latest Vitals:"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="#388e3c"
+                android:layout_marginBottom="12dp" />
+
+            <LinearLayout
+                android:id="@+id/vitalsDisplayLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="#e8f5e9"
+                android:padding="12dp"
+                android:layout_marginBottom="8dp" />
+        </LinearLayout>
+
+        <!-- Upload Vitals Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Upload Vitals:"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="#00796b"
+                android:layout_marginBottom="12dp" />
+
+            <EditText
+                android:id="@+id/etHeartRate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Heart Rate (bpm)"
+                android:inputType="numberDecimal"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/etTemperature"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Temperature (C)"
+                android:inputType="numberDecimal"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/etOxygen"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Oxygen Level (%)"
+                android:inputType="number"
+                android:layout_marginBottom="12dp" />
+
+            <Button
+                android:id="@+id/btnUploadVitals"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Upload Vitals"
+                android:background="#00796b"
+                android:textColor="#fff" />
+        </LinearLayout>
+
+        <!-- Medical History Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Medical History:"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="#6a1b9a"
+                android:layout_marginBottom="12dp" />
+
+            <LinearLayout
+                android:id="@+id/medicalHistoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="#f3e5f5"
+                android:padding="12dp"
+                android:layout_marginBottom="8dp" />
+        </LinearLayout>
+
+        <!-- Update Medical History Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Update Medical History:"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="#6a1b9a"
+                android:layout_marginBottom="12dp" />
+
+            <EditText
+                android:id="@+id/etCondition"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Condition"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/etMedication"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Medication"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/etNote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Note"
+                android:layout_marginBottom="12dp" />
+
+            <Button
+                android:id="@+id/btnSaveHistory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Save Medical History"
+                android:background="#6a1b9a"
+                android:textColor="#fff" />
+        </LinearLayout>
+
+        <!-- Book Appointment Section (Updated to match Java code) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Book Appointment:"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="#0d47a1"
+                android:layout_marginBottom="12dp" />
+
+            <EditText
+                android:id="@+id/etDoctorId"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter Doctor ID"
+                android:inputType="text"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/etAppointmentDateTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Select Appointment Date and Time"
+                android:focusable="false"
+                android:clickable="true"
+                android:inputType="none"
+                android:layout_marginBottom="12dp" />
+
+            <Button
+                android:id="@+id/btnBookAppointment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Book Appointment"
+                android:background="#0d47a1"
+                android:textColor="#fff" />
+        </LinearLayout>
+
+        <!-- Footer Space -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="32dp" />
+
+    </LinearLayout>
+
+</ScrollView>
+
+

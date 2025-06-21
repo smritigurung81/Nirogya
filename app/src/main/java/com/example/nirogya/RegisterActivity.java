@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
-    EditText etEmail, etPassword;
+    EditText etFullName, etEmail, etPassword;
     Spinner roleSpinner;
     Button btnRegister;
     TextView tvLogin;
@@ -23,6 +23,7 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
+        etFullName = findViewById(R.id.etFullName);
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
         roleSpinner = findViewById(R.id.roleSpinner);
@@ -39,9 +40,15 @@ public class RegisterActivity extends AppCompatActivity {
         roleSpinner.setAdapter(adapter);
 
         btnRegister.setOnClickListener(v -> {
+            String fullName = etFullName.getText().toString().trim();
             String email = etEmail.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
             String role = roleSpinner.getSelectedItem().toString();
+
+            if (fullName.isEmpty()) {
+                Toast.makeText(this, "Please enter your full name", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             // Check if a valid role is selected
             if (role.equals("Select role")) {
@@ -52,19 +59,19 @@ public class RegisterActivity extends AppCompatActivity {
             if (email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
                 return;
-
             }
+
             if (password.length() < 6) {
                 Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
                 return;
             }
-
 
             mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnSuccessListener(authResult -> {
                         if (authResult.getUser() != null) {
                             String uid = authResult.getUser().getUid();
                             Map<String, Object> userData = new HashMap<>();
+                            userData.put("fullName", fullName);
                             userData.put("email", email);
                             userData.put("role", role);
 
@@ -73,7 +80,10 @@ public class RegisterActivity extends AppCompatActivity {
                                         Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
                                         startActivity(new Intent(this, MainActivity.class));
                                         finish();
-                                    });
+                                    })
+                                    .addOnFailureListener(e ->
+                                            Toast.makeText(this, "Failed to save user data: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                                    );
                         } else {
                             Toast.makeText(this, "Registration failed: User is null", Toast.LENGTH_SHORT).show();
                         }
@@ -81,11 +91,10 @@ public class RegisterActivity extends AppCompatActivity {
                     .addOnFailureListener(e ->
                             Toast.makeText(this, "Registration failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                     );
-
-
         });
 
         tvLogin.setOnClickListener(v -> startActivity(new Intent(this, MainActivity.class)));
     }
 }
+
 
