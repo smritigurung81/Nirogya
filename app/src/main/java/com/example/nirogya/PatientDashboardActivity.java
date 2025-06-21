@@ -1,5 +1,6 @@
 package com.example.nirogya;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -12,9 +13,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 public class PatientDashboardActivity extends AppCompatActivity {
 
     private TextView tvPatientEmail;
-    private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,8 +24,8 @@ public class PatientDashboardActivity extends AppCompatActivity {
         tvPatientEmail = findViewById(R.id.tvPatientEmail);
 
         // Initialize Firebase instances
-        mAuth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         // Get current user and fetch data
         if (mAuth.getCurrentUser() != null) {

@@ -10,6 +10,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Objects;
+
 public class LoginActivity extends AppCompatActivity {
     EditText etEmail, etPassword;
     Button btnLogin;
@@ -36,7 +38,7 @@ public class LoginActivity extends AppCompatActivity {
             String password = etPassword.getText().toString();
 
             mAuth.signInWithEmailAndPassword(email, password).addOnSuccessListener(authResult -> {
-                String uid = mAuth.getCurrentUser().getUid();
+                String uid = Objects.requireNonNull(mAuth.getCurrentUser()).getUid();
                 db.collection("users").document(uid).get().addOnSuccessListener(documentSnapshot -> {
                     String role = documentSnapshot.getString("role");
                     if ("doctor".equals(role)) {
@@ -45,9 +47,7 @@ public class LoginActivity extends AppCompatActivity {
                         startActivity(new Intent(this, PatientDashboardActivity.class));
                     }
                 });
-            }).addOnFailureListener(e -> {
-                Toast.makeText(this, "Login failed", Toast.LENGTH_SHORT).show();
-            });
+            }).addOnFailureListener(e -> Toast.makeText(this, "Login failed", Toast.LENGTH_SHORT).show());
         });
 
         tvRegister.setOnClickListener(v -> startActivity(new Intent(this, RegisterActivity.class)));
