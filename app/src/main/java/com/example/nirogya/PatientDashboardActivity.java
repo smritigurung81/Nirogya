@@ -117,7 +117,8 @@ public class PatientDashboardActivity extends AppCompatActivity {
             }
 
             // Validate doctor ID exists
-            validateAndBookAppointment(doctorId, time);
+            validateAndBookAppointmentAndLinkDoctor(doctorId, time);
+
         });
 
         etAppointmentTime.setOnClickListener(v -> showDateTimePicker());
@@ -175,9 +176,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
                         }
                     }
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to load vitals: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to load vitals: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     private void loadMedicalHistory() {
@@ -207,33 +206,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to load medical history: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
-    }
-
-    private void validateAndBookAppointment(String doctorId, String time) {
-        // First, validate if the doctor ID exists
-        db.collection("users")
-                .document(doctorId)
-                .get()
-                .addOnSuccessListener(doc -> {
-                    if (doc.exists() && "doctor".equals(doc.getString("role"))) {
-                        // Doctor exists, proceed with booking
-                        try {
-                            AppointmentService.bookAppointment(userId, doctorId, time);
-                            Toast.makeText(this, "Appointment requested successfully!", Toast.LENGTH_SHORT).show();
-
-                            // Clear the input fields after successful booking
-                            etDoctorId.setText("");
-                            etAppointmentTime.setText("");
-                        } catch (Exception e) {
-                            Toast.makeText(this, "Error booking appointment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    } else {
-                        Toast.makeText(this, "Invalid Doctor ID. Please check and try again.", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error validating doctor ID: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
@@ -274,6 +246,42 @@ public class PatientDashboardActivity extends AppCompatActivity {
 
         datePickerDialog.show();
     }
+    private void validateAndBookAppointmentAndLinkDoctor(String doctorId, String time) {
+        db.collection("users")
+                .document(doctorId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists() && "doctor".equals(doc.getString("role"))) {
+                        // Doctor exists - Link doctor to patient
+                        Map<String, Object> updates = new HashMap<>();
+                        updates.put("linkedDoctorId", doctorId);
+
+                        db.collection("users").document(userId)
+                                .update(updates)
+                                .addOnSuccessListener(aVoid -> {
+                                    // Now book appointment with proper listeners
+                                    AppointmentService.bookAppointment(userId, doctorId, time)
+                                            .addOnSuccessListener(documentReference -> {
+                                                Toast.makeText(this, "Appointment booked and doctor linked!", Toast.LENGTH_SHORT).show();
+                                                etDoctorId.setText("");
+                                                etAppointmentTime.setText("");
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                Toast.makeText(this, "Failed to book appointment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                            });
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(this, "Failed to link doctor: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
+                    } else {
+                        Toast.makeText(this, "Invalid Doctor ID", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error validating doctor ID: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
 }
 
 

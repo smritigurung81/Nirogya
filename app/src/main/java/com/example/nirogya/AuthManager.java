@@ -17,18 +17,19 @@ public class AuthManager {
     }
 
     // Sign up with role
-    public void signUpUser(String email, String password, String role, AuthCallback callback) {
+    public void signUpUser(String email, String password, String fullName, String role, AuthCallback callback) {
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         assert user != null;
-                        saveUserRole(user, role, callback);
+                        saveUserRole(user, fullName, role, callback);
                     } else {
                         callback.onFailure("Registration failed");
                     }
                 });
     }
+
 
     // Sign in
     public void signInUser(String email, String password, AuthCallback callback) {
@@ -42,9 +43,10 @@ public class AuthManager {
                 });
     }
 
-    private void saveUserRole(FirebaseUser user, String role, AuthCallback callback) {
+    private void saveUserRole(FirebaseUser user, String fullName, String role, AuthCallback callback) {
         Map<String, Object> userData = new HashMap<>();
         userData.put("email", user.getEmail());
+        userData.put("fullName", fullName);  // Add fullName here
         userData.put("role", role);
 
         db.collection("users").document(user.getUid())
@@ -52,6 +54,7 @@ public class AuthManager {
                 .addOnSuccessListener(aVoid -> callback.onSuccess(role))
                 .addOnFailureListener(e -> callback.onFailure("Failed to save user"));
     }
+
 
     private void getUserRole(AuthCallback callback) {
         FirebaseUser user = mAuth.getCurrentUser();
