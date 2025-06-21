@@ -207,13 +207,13 @@
                 android:textColor="#0d47a1"
                 android:layout_marginBottom="12dp" />
 
-            <EditText
-                android:id="@+id/etDoctorId"
+            <Spinner
+                android:id="@+id/spinnerDoctorName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter Doctor ID"
-                android:inputType="text"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="8dp"
+                android:spinnerMode="dropdown" />
+
 
             <EditText
                 android:id="@+id/etAppointmentDateTime"
