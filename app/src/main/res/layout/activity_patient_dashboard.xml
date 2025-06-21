@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ffffff">
+    android:background="@android:color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -25,13 +25,13 @@
                 android:layout_height="100dp"
                 android:src="@drawable/logo"
                 android:layout_marginBottom="8dp"
-                android:contentDescription="App Logo" />
+                android:contentDescription="@string/app_name" />
 
             <TextView
                 android:id="@+id/tvWelcomeMessage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Welcome Patient"
+                android:text="@string/welcome_patient"
                 android:textSize="18sp"
                 android:textColor="#333333"
                 android:gravity="center" />
@@ -54,7 +54,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Latest Vitals:"
+                android:text="@string/latest_vitals_label"
                 android:textStyle="bold"
                 android:textSize="16sp"
                 android:textColor="#388e3c"
@@ -80,7 +80,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Upload Vitals:"
+                android:text="@string/upload_vitals_label"
                 android:textStyle="bold"
                 android:textSize="16sp"
                 android:textColor="#00796b"
@@ -90,33 +90,36 @@
                 android:id="@+id/etHeartRate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Heart Rate (bpm)"
+                android:hint="@string/heart_rate_hint"
                 android:inputType="numberDecimal"
+                android:autofillHints="none"
                 android:layout_marginBottom="8dp" />
 
             <EditText
                 android:id="@+id/etTemperature"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Temperature (C)"
+                android:hint="@string/temperature_hint"
                 android:inputType="numberDecimal"
+                android:autofillHints="none"
                 android:layout_marginBottom="8dp" />
 
             <EditText
                 android:id="@+id/etOxygen"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Oxygen Level (%)"
+                android:hint="@string/oxygen_level_hint"
                 android:inputType="number"
+                android:autofillHints="none"
                 android:layout_marginBottom="12dp" />
 
             <Button
                 android:id="@+id/btnUploadVitals"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Upload Vitals"
+                android:text="@string/upload_vitals_button"
                 android:background="#00796b"
-                android:textColor="#fff" />
+                android:textColor="@android:color/white" />
         </LinearLayout>
 
         <!-- Medical History Section -->
@@ -129,7 +132,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Medical History:"
+                android:text="@string/medical_history_label"
                 android:textStyle="bold"
                 android:textSize="16sp"
                 android:textColor="#6a1b9a"
@@ -155,7 +158,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Update Medical History:"
+                android:text="@string/update_medical_history_label"
                 android:textStyle="bold"
                 android:textSize="16sp"
                 android:textColor="#6a1b9a"
@@ -165,33 +168,36 @@
                 android:id="@+id/etCondition"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Condition"
+                android:hint="@string/condition_hint"
+                android:autofillHints="none"
                 android:layout_marginBottom="8dp" />
 
             <EditText
                 android:id="@+id/etMedication"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Medication"
+                android:hint="@string/medication_hint"
+                android:autofillHints="none"
                 android:layout_marginBottom="8dp" />
 
             <EditText
                 android:id="@+id/etNote"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Note"
+                android:hint="@string/note_hint"
+                android:autofillHints="none"
                 android:layout_marginBottom="12dp" />
 
             <Button
                 android:id="@+id/btnSaveHistory"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Save Medical History"
+                android:text="@string/save_medical_history_button"
                 android:background="#6a1b9a"
-                android:textColor="#fff" />
+                android:textColor="@android:color/white" />
         </LinearLayout>
 
-        <!-- Book Appointment Section (Updated to match Java code) -->
+        <!-- Book Appointment Section -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -201,37 +207,51 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Book Appointment:"
+                android:text="@string/book_appointment_label"
                 android:textStyle="bold"
                 android:textSize="16sp"
                 android:textColor="#0d47a1"
                 android:layout_marginBottom="12dp" />
 
+            <!-- Loading indicator for doctors -->
+            <TextView
+                android:id="@+id/tvDoctorLoadingStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/loading_doctors"
+                android:textSize="12sp"
+                android:textColor="#666666"
+                android:visibility="visible"
+                android:layout_marginBottom="4dp" />
+
             <Spinner
                 android:id="@+id/spinnerDoctorName"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:spinnerMode="dropdown" />
-
+                android:layout_height="48dp"
+                android:layout_marginBottom="12dp"
+                android:spinnerMode="dropdown"
+                android:background="@android:drawable/btn_default"
+                android:padding="8dp"
+                android:contentDescription="@string/select_doctor" />
 
             <EditText
                 android:id="@+id/etAppointmentDateTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Select Appointment Date and Time"
+                android:hint="@string/appointment_datetime_hint"
                 android:focusable="false"
                 android:clickable="true"
                 android:inputType="none"
+                android:autofillHints="none"
                 android:layout_marginBottom="12dp" />
 
             <Button
                 android:id="@+id/btnBookAppointment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Book Appointment"
+                android:text="@string/book_appointment_button"
                 android:background="#0d47a1"
-                android:textColor="#fff" />
+                android:textColor="@android:color/white" />
         </LinearLayout>
 
         <!-- Footer Space -->
@@ -242,5 +262,3 @@
     </LinearLayout>
 
 </ScrollView>
-
-

@@ -3,6 +3,8 @@ package com.example.nirogya;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -15,22 +17,24 @@ import java.util.*;
 
 public class PatientDashboardActivity extends AppCompatActivity {
 
-    private TextView tvWelcomeMessage;
+    private static final String TAG = "PatientDashboard";
+
+    private TextView tvWelcomeMessage, tvDoctorLoadingStatus;
     private LinearLayout vitalsDisplayLayout, medicalHistoryLayout;
     private EditText etHeartRate, etTemperature, etOxygen;
     private EditText etCondition, etMedication, etNote;
     private EditText etAppointmentTime;
-    private Spinner spinnerDoctorName; // Changed from EditText to Spinner
+    private Spinner spinnerDoctorName;
 
     private Button btnUploadVitals, btnSaveHistory, btnBookAppointment;
 
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private String userId;
 
-    // For doctor spinner - using HashMap to map fullName to UID
+    // For doctor spinner
     private ArrayAdapter<String> doctorAdapter;
     private final List<String> doctorNames = new ArrayList<>();
-    private final Map<String, String> doctorNameToUidMap = new HashMap<>(); // Maps fullName -> UID
+    private final Map<String, String> doctorNameToUidMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,107 +44,28 @@ public class PatientDashboardActivity extends AppCompatActivity {
         // Check if user is authenticated
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) {
-            Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.please_login_first, Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
         userId = currentUser.getUid();
+        Log.d(TAG, "User ID: " + userId);
 
         initUI();
-        loadDoctors(); // Load doctors for spinner
+        debugFirestoreConnection();
+        loadDoctors();
         loadVitals();
         loadMedicalHistory();
 
-        tvWelcomeMessage.setText(getString(R.string.welcome_patient));
+        tvWelcomeMessage.setText(R.string.welcome_patient);
 
-        btnUploadVitals.setOnClickListener(v -> {
-            try {
-                String heartRateStr = etHeartRate.getText().toString().trim();
-                String temperatureStr = etTemperature.getText().toString().trim();
-                String oxygenStr = etOxygen.getText().toString().trim();
-
-                if (heartRateStr.isEmpty() || temperatureStr.isEmpty() || oxygenStr.isEmpty()) {
-                    Toast.makeText(this, "Please fill all vital fields", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                double heartRate = Double.parseDouble(heartRateStr);
-                double temperature = Double.parseDouble(temperatureStr);
-                int oxygen = Integer.parseInt(oxygenStr);
-
-                VitalsService.uploadVitals(heartRate, temperature, oxygen);
-                Toast.makeText(this, "Vitals uploaded", Toast.LENGTH_SHORT).show();
-
-                // Clear the input fields after successful upload
-                etHeartRate.setText("");
-                etTemperature.setText("");
-                etOxygen.setText("");
-
-                // Refresh vitals display
-                loadVitals();
-            } catch (NumberFormatException e) {
-                Toast.makeText(this, "Please enter valid numbers", Toast.LENGTH_SHORT).show();
-            } catch (Exception e) {
-                Toast.makeText(this, "Error uploading vitals: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        btnSaveHistory.setOnClickListener(v -> {
-            String condition = etCondition.getText().toString().trim();
-            String medication = etMedication.getText().toString().trim();
-            String note = etNote.getText().toString().trim();
-
-            if (condition.isEmpty() && medication.isEmpty() && note.isEmpty()) {
-                Toast.makeText(this, "Please enter at least one field", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            try {
-                MedicalHistoryService.updateHistory(condition, medication, note);
-                Toast.makeText(this, "History updated", Toast.LENGTH_SHORT).show();
-
-                // Clear the input fields after successful save
-                etCondition.setText("");
-                etMedication.setText("");
-                etNote.setText("");
-
-                // Refresh medical history display
-                loadMedicalHistory();
-            } catch (Exception e) {
-                Toast.makeText(this, "Error updating history: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        btnBookAppointment.setOnClickListener(v -> {
-            String selectedDoctorName = (String) spinnerDoctorName.getSelectedItem();
-            String time = etAppointmentTime.getText().toString().trim();
-
-            if (selectedDoctorName == null || selectedDoctorName.equals("Select Doctor")) {
-                Toast.makeText(this, "Please select a doctor", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (time.isEmpty()) {
-                Toast.makeText(this, "Please select appointment time", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // Get doctor UID from the HashMap using selected doctor name
-            String doctorUid = doctorNameToUidMap.get(selectedDoctorName);
-            if (doctorUid == null) {
-                Toast.makeText(this, "Error: Doctor not found", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            bookAppointmentAndLinkDoctor(doctorUid, time);
-        });
-
-        etAppointmentTime.setOnClickListener(v -> showDateTimePicker());
+        setupClickListeners();
     }
 
     private void initUI() {
         tvWelcomeMessage = findViewById(R.id.tvWelcomeMessage);
+        tvDoctorLoadingStatus = findViewById(R.id.tvDoctorLoadingStatus);
         vitalsDisplayLayout = findViewById(R.id.vitalsDisplayLayout);
         medicalHistoryLayout = findViewById(R.id.medicalHistoryLayout);
 
@@ -151,45 +76,188 @@ public class PatientDashboardActivity extends AppCompatActivity {
         etMedication = findViewById(R.id.etMedication);
         etNote = findViewById(R.id.etNote);
         etAppointmentTime = findViewById(R.id.etAppointmentDateTime);
-        spinnerDoctorName = findViewById(R.id.spinnerDoctorName); // Changed from etDoctorId
+        spinnerDoctorName = findViewById(R.id.spinnerDoctorName);
 
         btnUploadVitals = findViewById(R.id.btnUploadVitals);
         btnSaveHistory = findViewById(R.id.btnSaveHistory);
         btnBookAppointment = findViewById(R.id.btnBookAppointment);
 
-        // Initialize spinner with empty list
-        doctorNames.add("Select Doctor");
+        // Initialize spinner
+        doctorNames.add(getString(R.string.loading_doctors));
         doctorAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, doctorNames);
         doctorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerDoctorName.setAdapter(doctorAdapter);
+        spinnerDoctorName.setEnabled(false);
+    }
+
+    private void setupClickListeners() {
+        btnUploadVitals.setOnClickListener(v -> uploadVitals());
+        btnSaveHistory.setOnClickListener(v -> saveHistory());
+        btnBookAppointment.setOnClickListener(v -> bookAppointment());
+        etAppointmentTime.setOnClickListener(v -> showDateTimePicker());
+    }
+
+    private void debugFirestoreConnection() {
+        Log.d(TAG, "Testing Firestore connection...");
+
+        db.collection("users")
+                .limit(1)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        QuerySnapshot result = task.getResult();
+                        Log.d(TAG, "Firestore connection successful. Total users found: " + result.size());
+
+                        // Test getting all users to see structure
+                        db.collection("users")
+                                .get()
+                                .addOnSuccessListener(allUsers -> {
+                                    Log.d(TAG, "All users count: " + allUsers.size());
+                                    for (DocumentSnapshot doc : allUsers.getDocuments()) {
+                                        String role = doc.getString("role");
+                                        String fullName = doc.getString("fullName");
+                                        Log.d(TAG, "User ID: " + doc.getId() + ", Role: " + role + ", Name: " + fullName);
+                                    }
+                                });
+                    } else {
+                        Log.e(TAG, "Firestore connection failed", task.getException());
+                    }
+                });
     }
 
     private void loadDoctors() {
+        Log.d(TAG, "Loading doctors...");
+        tvDoctorLoadingStatus.setText(R.string.loading_doctors);
+        tvDoctorLoadingStatus.setVisibility(View.VISIBLE);
+
         db.collection("users")
                 .whereEqualTo("role", "doctor")
                 .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    doctorNames.clear();
-                    doctorNameToUidMap.clear();
-                    doctorNames.add("Select Doctor"); // First item
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        QuerySnapshot querySnapshot = task.getResult();
+                        Log.d(TAG, "Doctors query completed. Found " + querySnapshot.size() + " doctors");
 
-                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                        String uid = doc.getId();
-                        String fullName = doc.getString("fullName");
+                        doctorNames.clear();
+                        doctorNameToUidMap.clear();
+                        doctorNames.add(getString(R.string.select_doctor));
 
-                        if (fullName != null && !fullName.isEmpty()) {
-                            doctorNames.add(fullName);
-                            doctorNameToUidMap.put(fullName, uid); // Map fullName -> UID
+                        for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                            String uid = doc.getId();
+                            String fullName = doc.getString("fullName");
+
+                            Log.d(TAG, "Doctor found - UID: " + uid + ", Name: " + fullName);
+
+                            if (fullName != null && !fullName.isEmpty()) {
+                                doctorNames.add(fullName);
+                                doctorNameToUidMap.put(fullName, uid);
+                            }
                         }
-                    }
 
-                    doctorAdapter.notifyDataSetChanged();
+                        runOnUiThread(() -> {
+                            doctorAdapter.notifyDataSetChanged();
+                            spinnerDoctorName.setEnabled(true);
 
-                    if (doctorNameToUidMap.isEmpty()) {
-                        Toast.makeText(this, "No doctors available", Toast.LENGTH_SHORT).show();
+                            if (doctorNameToUidMap.isEmpty()) {
+                                tvDoctorLoadingStatus.setText(R.string.no_doctors_available);
+                                tvDoctorLoadingStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_red_dark));
+                                Toast.makeText(this, R.string.no_doctors_available, Toast.LENGTH_SHORT).show();
+                            } else {
+                                tvDoctorLoadingStatus.setText(getString(R.string.doctors_found, doctorNameToUidMap.size()));
+                                tvDoctorLoadingStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark));
+                                tvDoctorLoadingStatus.postDelayed(() ->
+                                        tvDoctorLoadingStatus.setVisibility(View.GONE), 2000);
+                            }
+                        });
+
+                    } else {
+                        Log.e(TAG, "Error loading doctors", task.getException());
+                        runOnUiThread(() -> {
+                            tvDoctorLoadingStatus.setText(R.string.failed_to_load_doctors);
+                            tvDoctorLoadingStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_red_dark));
+                            if (task.getException() != null) {
+                                Toast.makeText(this, getString(R.string.failed_to_load_doctors_error, task.getException().getMessage()), Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
-                })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to load doctors: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                });
+    }
+
+    private void uploadVitals() {
+        try {
+            String heartRateStr = etHeartRate.getText().toString().trim();
+            String temperatureStr = etTemperature.getText().toString().trim();
+            String oxygenStr = etOxygen.getText().toString().trim();
+
+            if (heartRateStr.isEmpty() || temperatureStr.isEmpty() || oxygenStr.isEmpty()) {
+                Toast.makeText(this, R.string.fill_all_vital_fields, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            double heartRate = Double.parseDouble(heartRateStr);
+            double temperature = Double.parseDouble(temperatureStr);
+            int oxygen = Integer.parseInt(oxygenStr);
+
+            VitalsService.uploadVitals(heartRate, temperature, oxygen);
+            Toast.makeText(this, R.string.vitals_uploaded, Toast.LENGTH_SHORT).show();
+
+            etHeartRate.setText("");
+            etTemperature.setText("");
+            etOxygen.setText("");
+
+            loadVitals();
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, R.string.enter_valid_numbers, Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(this, getString(R.string.error_uploading_vitals, e.getMessage()), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void saveHistory() {
+        String condition = etCondition.getText().toString().trim();
+        String medication = etMedication.getText().toString().trim();
+        String note = etNote.getText().toString().trim();
+
+        if (condition.isEmpty() && medication.isEmpty() && note.isEmpty()) {
+            Toast.makeText(this, R.string.enter_at_least_one_field, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            MedicalHistoryService.updateHistory(condition, medication, note);
+            Toast.makeText(this, R.string.history_updated, Toast.LENGTH_SHORT).show();
+
+            etCondition.setText("");
+            etMedication.setText("");
+            etNote.setText("");
+
+            loadMedicalHistory();
+        } catch (Exception e) {
+            Toast.makeText(this, getString(R.string.error_updating_history, e.getMessage()), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void bookAppointment() {
+        String selectedDoctorName = (String) spinnerDoctorName.getSelectedItem();
+        String time = etAppointmentTime.getText().toString().trim();
+
+        if (selectedDoctorName == null || selectedDoctorName.equals(getString(R.string.select_doctor))) {
+            Toast.makeText(this, R.string.please_select_doctor, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (time.isEmpty()) {
+            Toast.makeText(this, R.string.please_select_appointment_time, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String doctorUid = doctorNameToUidMap.get(selectedDoctorName);
+        if (doctorUid == null) {
+            Toast.makeText(this, R.string.error_doctor_not_found, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        bookAppointmentAndLinkDoctor(doctorUid, time);
     }
 
     private void loadVitals() {
@@ -203,8 +271,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
                     vitalsDisplayLayout.removeAllViews();
                     if (querySnapshot.isEmpty()) {
                         TextView tv = new TextView(this);
-                        tv.setText(getString(R.string.no_vitals_available));
-
+                        tv.setText(R.string.no_vitals_available);
                         tv.setTextSize(14);
                         tv.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray));
                         vitalsDisplayLayout.addView(tv);
@@ -219,7 +286,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
                             double temperature = temperatureObj != null ? temperatureObj : 0.0;
                             int oxygen = oxygenObj != null ? oxygenObj.intValue() : 0;
 
-                            String formattedTime = "Unknown Time";
+                            String formattedTime = getString(R.string.unknown_time);
                             if (timestampObj != null) {
                                 Date date = new Date(timestampObj);
                                 java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
@@ -234,7 +301,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
                         }
                     }
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to load vitals: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(this, getString(R.string.failed_to_load_vitals, e.getMessage()), Toast.LENGTH_SHORT).show());
     }
 
     private void loadMedicalHistory() {
@@ -253,18 +320,17 @@ public class PatientDashboardActivity extends AppCompatActivity {
                                 (cond != null ? cond : getString(R.string.not_available)),
                                 (med != null ? med : getString(R.string.not_available)),
                                 (note != null ? note : getString(R.string.not_available))));
-
                         tv.setTextSize(14);
                         medicalHistoryLayout.addView(tv);
                     } else {
                         TextView tv = new TextView(this);
-                        tv.setText(getString(R.string.no_history_available));
+                        tv.setText(R.string.no_history_available);
                         tv.setTextSize(14);
                         tv.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray));
                         medicalHistoryLayout.addView(tv);
                     }
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to load medical history: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(this, getString(R.string.failed_to_load_medical_history, e.getMessage()), Toast.LENGTH_SHORT).show());
     }
 
     private void showDateTimePicker() {
@@ -272,7 +338,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
 
         DatePickerDialog datePickerDialog = new DatePickerDialog(this,
                 (view, year, month, day) -> {
-
                     calendar.set(Calendar.YEAR, year);
                     calendar.set(Calendar.MONTH, month);
                     calendar.set(Calendar.DAY_OF_MONTH, day);
@@ -306,22 +371,18 @@ public class PatientDashboardActivity extends AppCompatActivity {
     }
 
     private void bookAppointmentAndLinkDoctor(String doctorId, String time) {
-        // Link doctor to patient
         Map<String, Object> updates = new HashMap<>();
         updates.put("linkedDoctorId", doctorId);
 
         db.collection("users").document(userId)
                 .update(updates)
-                .addOnSuccessListener(aVoid -> {
-                    // Now book appointment with proper listeners
-                    AppointmentService.bookAppointment(userId, doctorId, time)
-                            .addOnSuccessListener(documentReference -> {
-                                Toast.makeText(this, "Appointment booked and doctor linked!", Toast.LENGTH_SHORT).show();
-                                spinnerDoctorName.setSelection(0); // Reset to "Select Doctor"
-                                etAppointmentTime.setText("");
-                            })
-                            .addOnFailureListener(e -> Toast.makeText(this, "Failed to book appointment: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-                })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to link doctor: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnSuccessListener(aVoid -> AppointmentService.bookAppointment(userId, doctorId, time)
+                        .addOnSuccessListener(documentReference -> {
+                            Toast.makeText(this, R.string.appointment_booked_success, Toast.LENGTH_SHORT).show();
+                            spinnerDoctorName.setSelection(0);
+                            etAppointmentTime.setText("");
+                        })
+                        .addOnFailureListener(e -> Toast.makeText(this, getString(R.string.failed_to_book_appointment, e.getMessage()), Toast.LENGTH_SHORT).show()))
+                .addOnFailureListener(e -> Toast.makeText(this, getString(R.string.failed_to_link_doctor, e.getMessage()), Toast.LENGTH_SHORT).show());
     }
 }

@@ -28,9 +28,7 @@
             android:exported="false" />
 
         <!-- Add other activities you might have -->
-        <activity
-            android:name=".DoctorAppointmentService"
-            android:exported="false" />
+
 
         <activity
             android:name=".DoctorDashboardActivity"
