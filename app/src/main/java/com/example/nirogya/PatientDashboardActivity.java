@@ -53,14 +53,15 @@ public class PatientDashboardActivity extends AppCompatActivity {
         Log.d(TAG, "User ID: " + userId);
 
         initUI();
-        debugFirestoreConnection();
+        setupClickListeners();
+
+        // Set welcome message
+        tvWelcomeMessage.setText(R.string.welcome_patient);
+
+        // Load data after UI is set up
         loadDoctors();
         loadVitals();
         loadMedicalHistory();
-
-        tvWelcomeMessage.setText(R.string.welcome_patient);
-
-        setupClickListeners();
     }
 
     private void initUI() {
@@ -82,12 +83,28 @@ public class PatientDashboardActivity extends AppCompatActivity {
         btnSaveHistory = findViewById(R.id.btnSaveHistory);
         btnBookAppointment = findViewById(R.id.btnBookAppointment);
 
-        // Initialize spinner
+        // Initialize spinner properly
+        setupSpinner();
+    }
+
+    private void setupSpinner() {
+        // Clear and initialize doctor names
+        doctorNames.clear();
         doctorNames.add(getString(R.string.loading_doctors));
-        doctorAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, doctorNames);
+
+        // Create adapter with proper layout
+        doctorAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                doctorNames
+        );
         doctorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        // Set adapter to spinner
         spinnerDoctorName.setAdapter(doctorAdapter);
         spinnerDoctorName.setEnabled(false);
+
+        Log.d(TAG, "Spinner initialized with adapter, items count: " + doctorNames.size());
     }
 
     private void setupClickListeners() {
@@ -97,90 +114,152 @@ public class PatientDashboardActivity extends AppCompatActivity {
         etAppointmentTime.setOnClickListener(v -> showDateTimePicker());
     }
 
-    private void debugFirestoreConnection() {
-        Log.d(TAG, "Testing Firestore connection...");
+    private void loadDoctors() {
+        Log.d(TAG, "Starting to load doctors...");
 
+        // Update UI to show loading
+        runOnUiThread(() -> {
+            tvDoctorLoadingStatus.setText(R.string.loading_doctors);
+            tvDoctorLoadingStatus.setVisibility(View.VISIBLE);
+            tvDoctorLoadingStatus.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray));
+        });
+
+        // First, let's test if we can access the users collection at all
         db.collection("users")
                 .limit(1)
                 .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        QuerySnapshot result = task.getResult();
-                        Log.d(TAG, "Firestore connection successful. Total users found: " + result.size());
+                .addOnCompleteListener(testTask -> {
+                    if (testTask.isSuccessful()) {
+                        Log.d(TAG, "Can access users collection, found " + testTask.getResult().size() + " documents");
 
-                        // Test getting all users to see structure
-                        db.collection("users")
-                                .get()
-                                .addOnSuccessListener(allUsers -> {
-                                    Log.d(TAG, "All users count: " + allUsers.size());
-                                    for (DocumentSnapshot doc : allUsers.getDocuments()) {
-                                        String role = doc.getString("role");
-                                        String fullName = doc.getString("fullName");
-                                        Log.d(TAG, "User ID: " + doc.getId() + ", Role: " + role + ", Name: " + fullName);
-                                    }
-                                });
+                        // Now try to get doctors specifically
+                        queryDoctors();
                     } else {
-                        Log.e(TAG, "Firestore connection failed", task.getException());
+                        Log.e(TAG, "Cannot access users collection", testTask.getException());
+                        handleDoctorLoadFailure("Cannot access database: " + testTask.getException().getMessage());
                     }
                 });
     }
 
-    private void loadDoctors() {
-        Log.d(TAG, "Loading doctors...");
-        tvDoctorLoadingStatus.setText(R.string.loading_doctors);
-        tvDoctorLoadingStatus.setVisibility(View.VISIBLE);
+    private void queryDoctors() {
+        Log.d(TAG, "Querying for doctors...");
 
         db.collection("users")
                 .whereEqualTo("role", "doctor")
                 .get()
                 .addOnCompleteListener(task -> {
+                    Log.d(TAG, "Doctor query completed, success: " + task.isSuccessful());
+
                     if (task.isSuccessful()) {
                         QuerySnapshot querySnapshot = task.getResult();
-                        Log.d(TAG, "Doctors query completed. Found " + querySnapshot.size() + " doctors");
+                        Log.d(TAG, "Found " + querySnapshot.size() + " doctors");
 
-                        doctorNames.clear();
-                        doctorNameToUidMap.clear();
-                        doctorNames.add(getString(R.string.select_doctor));
-
-                        for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                            String uid = doc.getId();
-                            String fullName = doc.getString("fullName");
-
-                            Log.d(TAG, "Doctor found - UID: " + uid + ", Name: " + fullName);
-
-                            if (fullName != null && !fullName.isEmpty()) {
-                                doctorNames.add(fullName);
-                                doctorNameToUidMap.put(fullName, uid);
-                            }
-                        }
-
-                        runOnUiThread(() -> {
-                            doctorAdapter.notifyDataSetChanged();
-                            spinnerDoctorName.setEnabled(true);
-
-                            if (doctorNameToUidMap.isEmpty()) {
-                                tvDoctorLoadingStatus.setText(R.string.no_doctors_available);
-                                tvDoctorLoadingStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_red_dark));
-                                Toast.makeText(this, R.string.no_doctors_available, Toast.LENGTH_SHORT).show();
-                            } else {
-                                tvDoctorLoadingStatus.setText(getString(R.string.doctors_found, doctorNameToUidMap.size()));
-                                tvDoctorLoadingStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark));
-                                tvDoctorLoadingStatus.postDelayed(() ->
-                                        tvDoctorLoadingStatus.setVisibility(View.GONE), 2000);
-                            }
-                        });
+                        // Process results on main thread
+                        runOnUiThread(() -> processDoctorResults(querySnapshot));
 
                     } else {
                         Log.e(TAG, "Error loading doctors", task.getException());
-                        runOnUiThread(() -> {
-                            tvDoctorLoadingStatus.setText(R.string.failed_to_load_doctors);
-                            tvDoctorLoadingStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_red_dark));
-                            if (task.getException() != null) {
-                                Toast.makeText(this, getString(R.string.failed_to_load_doctors_error, task.getException().getMessage()), Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        handleDoctorLoadFailure(task.getException() != null ?
+                                task.getException().getMessage() : "Unknown error");
                     }
                 });
+    }
+
+    private void processDoctorResults(QuerySnapshot querySnapshot) {
+        // Clear existing data
+        doctorNames.clear();
+        doctorNameToUidMap.clear();
+
+        // Add default selection
+        doctorNames.add(getString(R.string.select_doctor));
+
+        // Process each doctor document
+        for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+            String uid = doc.getId();
+            String fullName = doc.getString("fullName");
+            String email = doc.getString("email");
+            String role = doc.getString("role");
+
+            Log.d(TAG, "Processing doctor - UID: " + uid + ", Name: " + fullName +
+                    ", Email: " + email + ", Role: " + role);
+
+            // Use fullName if available, otherwise use email, otherwise use UID
+            String displayName = fullName;
+            if (displayName == null || displayName.trim().isEmpty()) {
+                displayName = email;
+            }
+            if (displayName == null || displayName.trim().isEmpty()) {
+                displayName = "Doctor " + uid.substring(0, Math.min(8, uid.length()));
+            }
+
+            if (displayName != null && !displayName.trim().isEmpty()) {
+                doctorNames.add(displayName);
+                doctorNameToUidMap.put(displayName, uid);
+                Log.d(TAG, "Added doctor: " + displayName + " -> " + uid);
+            }
+        }
+
+        // Update the spinner
+        updateSpinnerWithDoctors();
+    }
+
+    private void updateSpinnerWithDoctors() {
+        Log.d(TAG, "Updating spinner with " + doctorNames.size() + " items");
+
+        // Notify adapter of data change
+        doctorAdapter.notifyDataSetChanged();
+
+        // Enable spinner
+        spinnerDoctorName.setEnabled(true);
+
+        Log.d(TAG, "Spinner visibility: " + spinnerDoctorName.getVisibility()); // 0 = VISIBLE
+        Log.d(TAG, "Spinner enabled: " + spinnerDoctorName.isEnabled());       // true = enabled
+
+        // Update status message
+        if (doctorNameToUidMap.isEmpty()) {
+            tvDoctorLoadingStatus.setText(R.string.no_doctors_available);
+            tvDoctorLoadingStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_red_dark));
+            Toast.makeText(this, R.string.no_doctors_available, Toast.LENGTH_SHORT).show();
+        } else {
+            tvDoctorLoadingStatus.setText(getString(R.string.doctors_found, doctorNameToUidMap.size()));
+            tvDoctorLoadingStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark));
+
+            // Hide the status message after 3 seconds
+            tvDoctorLoadingStatus.postDelayed(() -> {
+                if (tvDoctorLoadingStatus != null) {
+                    tvDoctorLoadingStatus.setVisibility(View.GONE);
+                }
+            }, 3000);
+        }
+
+        Log.d(TAG, "Spinner update complete. Enabled: " + spinnerDoctorName.isEnabled());
+    }
+
+    private void handleDoctorLoadFailure(String errorMessage) {
+        runOnUiThread(() -> {
+            tvDoctorLoadingStatus.setText(R.string.failed_to_load_doctors);
+            tvDoctorLoadingStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_red_dark));
+
+            Toast.makeText(this, getString(R.string.failed_to_load_doctors_error, errorMessage),
+                    Toast.LENGTH_LONG).show();
+
+            // Add a retry option
+            doctorNames.clear();
+            doctorNames.add("Failed to load - Tap to retry");
+            doctorAdapter.notifyDataSetChanged();
+
+            spinnerDoctorName.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    if (position == 0 && doctorNames.get(0).equals("Failed to load - Tap to retry")) {
+                        loadDoctors(); // Retry loading
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {}
+            });
+        });
     }
 
     private void uploadVitals() {
@@ -198,18 +277,33 @@ public class PatientDashboardActivity extends AppCompatActivity {
             double temperature = Double.parseDouble(temperatureStr);
             int oxygen = Integer.parseInt(oxygenStr);
 
-            VitalsService.uploadVitals(heartRate, temperature, oxygen);
-            Toast.makeText(this, R.string.vitals_uploaded, Toast.LENGTH_SHORT).show();
+            // Create vitals data
+            Map<String, Object> vitalsData = new HashMap<>();
+            vitalsData.put("heartRate", heartRate);
+            vitalsData.put("temperature", temperature);
+            vitalsData.put("oxygen", oxygen);
+            vitalsData.put("timestamp", System.currentTimeMillis());
 
-            etHeartRate.setText("");
-            etTemperature.setText("");
-            etOxygen.setText("");
+            // Upload to Firestore
+            db.collection("vitals")
+                    .document(userId)
+                    .collection("entries")
+                    .add(vitalsData)
+                    .addOnSuccessListener(documentReference -> {
+                        Toast.makeText(this, R.string.vitals_uploaded, Toast.LENGTH_SHORT).show();
+                        etHeartRate.setText("");
+                        etTemperature.setText("");
+                        etOxygen.setText("");
+                        loadVitals(); // Refresh the display
+                    })
+                    .addOnFailureListener(e -> Toast.makeText(this, getString(R.string.error_uploading_vitals, e.getMessage()),
+                            Toast.LENGTH_SHORT).show());
 
-            loadVitals();
         } catch (NumberFormatException e) {
             Toast.makeText(this, R.string.enter_valid_numbers, Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
-            Toast.makeText(this, getString(R.string.error_uploading_vitals, e.getMessage()), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.error_uploading_vitals, e.getMessage()),
+                    Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -224,16 +318,28 @@ public class PatientDashboardActivity extends AppCompatActivity {
         }
 
         try {
-            MedicalHistoryService.updateHistory(condition, medication, note);
-            Toast.makeText(this, R.string.history_updated, Toast.LENGTH_SHORT).show();
+            Map<String, Object> historyData = new HashMap<>();
+            historyData.put("condition", condition);
+            historyData.put("medication", medication);
+            historyData.put("note", note);
+            historyData.put("timestamp", System.currentTimeMillis());
 
-            etCondition.setText("");
-            etMedication.setText("");
-            etNote.setText("");
+            db.collection("medicalHistories")
+                    .document(userId)
+                    .set(historyData)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, R.string.history_updated, Toast.LENGTH_SHORT).show();
+                        etCondition.setText("");
+                        etMedication.setText("");
+                        etNote.setText("");
+                        loadMedicalHistory(); // Refresh the display
+                    })
+                    .addOnFailureListener(e -> Toast.makeText(this, getString(R.string.error_updating_history, e.getMessage()),
+                            Toast.LENGTH_SHORT).show());
 
-            loadMedicalHistory();
         } catch (Exception e) {
-            Toast.makeText(this, getString(R.string.error_updating_history, e.getMessage()), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.error_updating_history, e.getMessage()),
+                    Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -317,9 +423,9 @@ public class PatientDashboardActivity extends AppCompatActivity {
 
                         TextView tv = new TextView(this);
                         tv.setText(getString(R.string.history_display,
-                                (cond != null ? cond : getString(R.string.not_available)),
-                                (med != null ? med : getString(R.string.not_available)),
-                                (note != null ? note : getString(R.string.not_available))));
+                                (cond != null && !cond.isEmpty() ? cond : getString(R.string.not_available)),
+                                (med != null && !med.isEmpty() ? med : getString(R.string.not_available)),
+                                (note != null && !note.isEmpty() ? note : getString(R.string.not_available))));
                         tv.setTextSize(14);
                         medicalHistoryLayout.addView(tv);
                     } else {
@@ -371,18 +477,32 @@ public class PatientDashboardActivity extends AppCompatActivity {
     }
 
     private void bookAppointmentAndLinkDoctor(String doctorId, String time) {
+        // First, link the doctor to the patient
         Map<String, Object> updates = new HashMap<>();
         updates.put("linkedDoctorId", doctorId);
 
         db.collection("users").document(userId)
                 .update(updates)
-                .addOnSuccessListener(aVoid -> AppointmentService.bookAppointment(userId, doctorId, time)
-                        .addOnSuccessListener(documentReference -> {
-                            Toast.makeText(this, R.string.appointment_booked_success, Toast.LENGTH_SHORT).show();
-                            spinnerDoctorName.setSelection(0);
-                            etAppointmentTime.setText("");
-                        })
-                        .addOnFailureListener(e -> Toast.makeText(this, getString(R.string.failed_to_book_appointment, e.getMessage()), Toast.LENGTH_SHORT).show()))
-                .addOnFailureListener(e -> Toast.makeText(this, getString(R.string.failed_to_link_doctor, e.getMessage()), Toast.LENGTH_SHORT).show());
+                .addOnSuccessListener(aVoid -> {
+                    // Then book the appointment
+                    Map<String, Object> appointmentData = new HashMap<>();
+                    appointmentData.put("patientId", userId);
+                    appointmentData.put("doctorId", doctorId);
+                    appointmentData.put("appointmentTime", time);
+                    appointmentData.put("status", "scheduled");
+                    appointmentData.put("timestamp", System.currentTimeMillis());
+
+                    db.collection("appointments")
+                            .add(appointmentData)
+                            .addOnSuccessListener(documentReference -> {
+                                Toast.makeText(this, R.string.appointment_booked_success, Toast.LENGTH_SHORT).show();
+                                spinnerDoctorName.setSelection(0);
+                                etAppointmentTime.setText("");
+                            })
+                            .addOnFailureListener(e -> Toast.makeText(this, getString(R.string.failed_to_book_appointment, e.getMessage()),
+                                    Toast.LENGTH_SHORT).show());
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, getString(R.string.failed_to_link_doctor, e.getMessage()),
+                        Toast.LENGTH_SHORT).show());
     }
 }

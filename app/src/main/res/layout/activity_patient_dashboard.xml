@@ -2,7 +2,8 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:background="@android:color/white"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -92,7 +93,7 @@
                 android:layout_height="wrap_content"
                 android:hint="@string/heart_rate_hint"
                 android:inputType="numberDecimal"
-                android:autofillHints="none"
+                android:autofillHints=""
                 android:layout_marginBottom="8dp" />
 
             <EditText
@@ -101,7 +102,7 @@
                 android:layout_height="wrap_content"
                 android:hint="@string/temperature_hint"
                 android:inputType="numberDecimal"
-                android:autofillHints="none"
+                android:autofillHints=""
                 android:layout_marginBottom="8dp" />
 
             <EditText
@@ -110,7 +111,7 @@
                 android:layout_height="wrap_content"
                 android:hint="@string/oxygen_level_hint"
                 android:inputType="number"
-                android:autofillHints="none"
+                android:autofillHints=""
                 android:layout_marginBottom="12dp" />
 
             <Button
@@ -118,7 +119,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/upload_vitals_button"
-                android:background="#00796b"
+                android:backgroundTint="#00796b"
                 android:textColor="@android:color/white" />
         </LinearLayout>
 
@@ -169,7 +170,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/condition_hint"
-                android:autofillHints="none"
+                android:autofillHints=""
                 android:layout_marginBottom="8dp" />
 
             <EditText
@@ -177,7 +178,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/medication_hint"
-                android:autofillHints="none"
+                android:autofillHints=""
                 android:layout_marginBottom="8dp" />
 
             <EditText
@@ -185,7 +186,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/note_hint"
-                android:autofillHints="none"
+                android:autofillHints=""
                 android:layout_marginBottom="12dp" />
 
             <Button
@@ -193,7 +194,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/save_medical_history_button"
-                android:background="#6a1b9a"
+                android:backgroundTint="#6a1b9a"
                 android:textColor="@android:color/white" />
         </LinearLayout>
 
@@ -222,16 +223,14 @@
                 android:textSize="12sp"
                 android:textColor="#666666"
                 android:visibility="visible"
-                android:layout_marginBottom="4dp" />
+                android:layout_marginBottom="8dp" />
 
             <Spinner
                 android:id="@+id/spinnerDoctorName"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="12dp"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
                 android:spinnerMode="dropdown"
-                android:background="@android:drawable/btn_default"
-                android:padding="8dp"
                 android:contentDescription="@string/select_doctor" />
 
             <EditText
@@ -242,7 +241,7 @@
                 android:focusable="false"
                 android:clickable="true"
                 android:inputType="none"
-                android:autofillHints="none"
+                android:autofillHints=""
                 android:layout_marginBottom="12dp" />
 
             <Button
@@ -250,7 +249,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/book_appointment_button"
-                android:background="#0d47a1"
+                android:backgroundTint="#0d47a1"
                 android:textColor="@android:color/white" />
         </LinearLayout>
 
