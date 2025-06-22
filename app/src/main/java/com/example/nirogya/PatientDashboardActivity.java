@@ -22,6 +22,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PatientDashboardActivity extends AppCompatActivity {
 
@@ -388,12 +390,73 @@ public class PatientDashboardActivity extends AppCompatActivity {
             return;
         }
 
-        Appointment appointment = new Appointment(patientUid, doctorName, appointmentDateTime);
+        // First, find doctor UID by name
+        db.collection("users")
+                .whereEqualTo("role", "doctor")
+                .whereEqualTo("fullName", doctorName)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!isFinishing() && !isDestroyed()) {
+                        String doctorId = null;
+
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            // Found exact match
+                            doctorId = queryDocumentSnapshots.getDocuments().get(0).getId();
+                        } else {
+                            // Try partial match (case insensitive)
+                            db.collection("users")
+                                    .whereEqualTo("role", "doctor")
+                                    .get()
+                                    .addOnSuccessListener(allDoctors -> {
+                                        String foundDoctorId = null;
+                                        for (DocumentSnapshot doc : allDoctors) {
+                                            String fullName = doc.getString("fullName");
+                                            if (fullName != null && fullName.toLowerCase().contains(doctorName.toLowerCase())) {
+                                                foundDoctorId = doc.getId();
+                                                break;
+                                            }
+                                        }
+
+                                        if (foundDoctorId != null) {
+                                            createAppointment(foundDoctorId, doctorName, appointmentDateTime);
+                                        } else {
+                                            Toast.makeText(this, "Doctor not found. Please check the name.", Toast.LENGTH_SHORT).show();
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.e("PatientDashboard", "Failed to search doctors", e);
+                                        Toast.makeText(this, "Failed to search for doctor", Toast.LENGTH_SHORT).show();
+                                    });
+                            return;
+                        }
+
+                        // Create appointment with found doctor ID
+                        createAppointment(doctorId, doctorName, appointmentDateTime);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (!isFinishing() && !isDestroyed()) {
+                        Log.e("PatientDashboard", "Failed to find doctor", e);
+                        Toast.makeText(this, "Failed to find doctor", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void createAppointment(String doctorId, String doctorName, String appointmentDateTime) {
+        Map<String, Object> appointment = new HashMap<>();
+        appointment.put("patientId", patientUid);
+        appointment.put("doctorId", doctorId); // Internal UID for system
+        appointment.put("doctorName", doctorName); // Display name for UX
+        appointment.put("appointmentDateTime", appointmentDateTime);
+        appointment.put("reason", "General consultation"); // Default reason
+        appointment.put("status", "pending");
+        appointment.put("timestamp", System.currentTimeMillis());
 
         db.collection("appointments").add(appointment)
                 .addOnSuccessListener(documentReference -> {
                     if (!isFinishing() && !isDestroyed()) {
-                        Toast.makeText(this, "Appointment booked successfully", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Appointment booked successfully with Dr. " + doctorName, Toast.LENGTH_SHORT).show();
                         etDoctorName.setText("");
                         etAppointmentDateTime.setText("");
                     }
@@ -405,7 +468,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
                     }
                 });
     }
-
     // Helper method to add text to layouts consistently
     private void addTextToLayout(LinearLayout layout, String text, int textSize) {
         addTextToLayout(layout, text, textSize, 0);
@@ -469,17 +531,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
         }
     }
 
-    public static class Appointment {
-        public String patientId, doctorName, appointmentDateTime;
 
-        public Appointment() {
-        }
 
-        public Appointment(String patientId, String doctorName, String appointmentDateTime) {
-            this.patientId = patientId;
-            this.doctorName = doctorName;
-            this.appointmentDateTime = appointmentDateTime;
-        }
-    }
 }
 

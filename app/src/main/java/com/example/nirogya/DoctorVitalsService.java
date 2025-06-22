@@ -7,11 +7,10 @@ import com.google.firebase.firestore.Query;
 public class DoctorVitalsService {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    // Query vitals for a patient sorted by timestamp descending
+    // Correctly query flat /vitals collection using patientId field
     public void getVitalsForPatient(String patientId, OnCompleteListener listener) {
         db.collection("vitals")
-                .document(patientId)
-                .collection("entries")
+                .whereEqualTo("patientId", patientId)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(listener);

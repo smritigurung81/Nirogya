@@ -2,7 +2,6 @@ package com.example.nirogya;
 
 import android.util.Log;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,13 +15,11 @@ public class VitalsService {
         Map<String, Object> data = new HashMap<>();
         data.put("heartRate", heartRate);
         data.put("temperature", temperature);
-        data.put("oxygen", oxygen);
-        data.put("timestamp", FieldValue.serverTimestamp());
+        data.put("oxygenLevel", oxygen); // Changed from "oxygen" to "oxygenLevel"
+        data.put("timestamp", System.currentTimeMillis()); // Changed to match PatientDashboard
+        data.put("patientId", userId); // Added patientId field
 
-
-        db.collection("vitals")
-                .document(userId)
-                .collection("entries")
+        db.collection("vitals") // Changed to flat structure
                 .add(data)
                 .addOnSuccessListener(documentReference ->
                         Log.d("Vitals", "Uploaded successfully"))
