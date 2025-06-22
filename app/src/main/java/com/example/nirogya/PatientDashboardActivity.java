@@ -18,6 +18,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FieldValue;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -197,20 +198,20 @@ public class PatientDashboardActivity extends AppCompatActivity {
         }
 
         vitalsDisplayLayout.removeAllViews();
+
         db.collection("vitals")
                 .whereEqualTo("patientId", patientUid)
                 .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
                 .limit(1)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (!isFinishing() && !isDestroyed()) { // Check if activity is still valid
+                    if (!isFinishing() && !isDestroyed()) {
                         if (!queryDocumentSnapshots.isEmpty()) {
                             DocumentSnapshot latest = queryDocumentSnapshots.getDocuments().get(0);
                             Double temp = latest.getDouble("temperature");
                             Double heartRate = latest.getDouble("heartRate");
                             Double oxygen = latest.getDouble("oxygenLevel");
 
-                            // Format with null checks
                             String tempStr = temp != null ? String.format("%.1f", temp) : "N/A";
                             String hrStr = heartRate != null ? String.format("%.0f", heartRate) : "N/A";
                             String oxyStr = oxygen != null ? String.format("%.0f", oxygen) : "N/A";
@@ -229,6 +230,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
                     }
                 });
     }
+
 
     private void uploadVitals() {
         String heartRateStr = etHeartRate.getText().toString().trim();
@@ -252,9 +254,15 @@ public class PatientDashboardActivity extends AppCompatActivity {
             return;
         }
 
-        // Save to Firestore
-        Vitals vitals = new Vitals(temperature, heartRate, oxygen, System.currentTimeMillis(), patientUid);
-        db.collection("vitals").add(vitals)
+        Map<String, Object> vitalsMap = new HashMap<>();
+        vitalsMap.put("temperature", temperature);
+        vitalsMap.put("heartRate", heartRate);
+        vitalsMap.put("oxygenLevel", oxygen);
+        vitalsMap.put("timestamp", FieldValue.serverTimestamp());
+        vitalsMap.put("patientId", patientUid);
+
+        db.collection("vitals")
+                .add(vitalsMap)
                 .addOnSuccessListener(documentReference -> {
                     if (!isFinishing() && !isDestroyed()) {
                         Toast.makeText(this, "Vitals uploaded", Toast.LENGTH_SHORT).show();
@@ -269,7 +277,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
                     }
                 });
     }
-
     private void clearVitalsInputs() {
         etHeartRate.setText("");
         etTemperature.setText("");

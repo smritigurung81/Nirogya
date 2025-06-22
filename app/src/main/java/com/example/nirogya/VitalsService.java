@@ -2,28 +2,32 @@ package com.example.nirogya;
 
 import android.util.Log;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class VitalsService {
+
     public static void uploadVitals(double heartRate, double temperature, int oxygen) {
-        String userId = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            Log.e("VitalsService", "No authenticated user");
+            return;
+        }
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         Map<String, Object> data = new HashMap<>();
         data.put("heartRate", heartRate);
         data.put("temperature", temperature);
-        data.put("oxygenLevel", oxygen); // Changed from "oxygen" to "oxygenLevel"
-        data.put("timestamp", System.currentTimeMillis()); // Changed to match PatientDashboard
-        data.put("patientId", userId); // Added patientId field
+        data.put("oxygenLevel", oxygen);
+        data.put("timestamp", FieldValue.serverTimestamp()); // Use server timestamp
+        data.put("patientId", userId);
 
-        db.collection("vitals") // Changed to flat structure
+        db.collection("vitals")
                 .add(data)
-                .addOnSuccessListener(documentReference ->
-                        Log.d("Vitals", "Uploaded successfully"))
-                .addOnFailureListener(e ->
-                        Log.e("Vitals", "Upload failed", e));
+                .addOnSuccessListener(documentReference -> Log.d("VitalsService", "Uploaded successfully"))
+                .addOnFailureListener(e -> Log.e("VitalsService", "Upload failed", e));
     }
 }
