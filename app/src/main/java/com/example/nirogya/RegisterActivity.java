@@ -33,24 +33,27 @@ public class RegisterActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Spinner with default "Select role" item
+        // Spinner setup
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item,
                 new String[]{"Select role", "patient", "doctor"});
         roleSpinner.setAdapter(adapter);
 
         btnRegister.setOnClickListener(v -> {
-            String fullName = etFullName.getText().toString().trim();
+            String rawName = etFullName.getText().toString().trim();
+            String fullName = capitalizeWords(rawName);
+            String fullNameLower = rawName.toLowerCase();
+
             String email = etEmail.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
             String role = roleSpinner.getSelectedItem().toString();
 
-            if (fullName.isEmpty()) {
+            // Validation
+            if (rawName.isEmpty()) {
                 Toast.makeText(this, "Please enter your full name", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Check if a valid role is selected
             if (role.equals("Select role")) {
                 Toast.makeText(this, "Please select a valid role", Toast.LENGTH_SHORT).show();
                 return;
@@ -66,12 +69,14 @@ public class RegisterActivity extends AppCompatActivity {
                 return;
             }
 
+            // Create user
             mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnSuccessListener(authResult -> {
                         if (authResult.getUser() != null) {
                             String uid = authResult.getUser().getUid();
                             Map<String, Object> userData = new HashMap<>();
                             userData.put("fullName", fullName);
+                            userData.put("fullNameLower", fullNameLower);
                             userData.put("email", email);
                             userData.put("role", role);
 
@@ -95,6 +100,21 @@ public class RegisterActivity extends AppCompatActivity {
 
         tvLogin.setOnClickListener(v -> startActivity(new Intent(this, MainActivity.class)));
     }
+
+    // Capitalizes first letter of each word (e.g. "dr. maya sharma" → "Dr. Maya Sharma")
+    private String capitalizeWords(String input) {
+        String[] words = input.toLowerCase().trim().split("\\s+");
+        StringBuilder sb = new StringBuilder();
+        for (String word : words) {
+            if (!word.isEmpty()) {
+                sb.append(Character.toUpperCase(word.charAt(0)))
+                        .append(word.substring(1))
+                        .append(" ");
+            }
+        }
+        return sb.toString().trim();
+    }
 }
+
 
 

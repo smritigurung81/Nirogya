@@ -1,63 +1,42 @@
 <resources>
-    <string name="app_name">Nirogya</string>
+    <string name="app_name">Patient Dashboard</string>
 
-    <!-- Welcome messages -->
-    <string name="welcome_patient">Welcome, Patient</string>
-    <string name="please_login_first">Please login first</string>
+    <!-- Content Descriptions -->
+    <string name="app_logo">App Logo</string>
+    <string name="profile_menu">Profile Menu</string>
+    <string name="profile_icon">Profile icon</string>
+    <string name="person_icon">Person icon</string>
+    <string name="user_icon">User icon</string>
+    <string name="email_icon">Email icon</string>
+    <string name="role_icon">Role icon</string>
+    <string name="settings_icon">Settings icon</string>
+    <string name="logout_icon">Logout Icon</string>
 
-    <!-- Labels for sections -->
-    <string name="latest_vitals_label">Latest Vitals:</string>
-    <string name="upload_vitals_label">Upload Vitals:</string>
-    <string name="medical_history_label">Medical History:</string>
-    <string name="update_medical_history_label">Update Medical History:</string>
-    <string name="book_appointment_label">Book Appointment:</string>
+    <!-- Text Labels -->
+    <string name="welcome_patient">Welcome Patient</string>
+    <string name="latest_vitals">Latest Vitals:</string>
+    <string name="upload_vitals">Upload Vitals</string>
+    <string name="medical_history">Medical History:</string>
+    <string name="update_medical_history">Update Medical History:</string>
+    <string name="book_appointment">Book Appointment:</string>
 
-    <!-- Hints for input fields -->
-    <string name="heart_rate_hint">Heart Rate (bpm)</string>
-    <string name="temperature_hint">Temperature ©</string>
-    <string name="oxygen_level_hint">Oxygen Level (%)</string>
-    <string name="condition_hint">Condition</string>
-    <string name="medication_hint">Medication</string>
-    <string name="note_hint">Note</string>
-    <string name="appointment_datetime_hint">Select Appointment Date and Time</string>
+    <!-- Hints -->
+    <string name="heart_rate_bpm">Heart Rate (bpm)</string>
+    <string name="temperature_c">Temperature (C)</string>
+    <string name="oxygen_level_percent">Oxygen Level (%)</string>
+    <string name="condition">Condition</string>
+    <string name="medication">Medication</string>
+    <string name="note">Note</string>
+    <string name="enter_doctor_full_name">Enter Doctor\'s Full Name</string>
+    <string name="select_appointment_date_time">Select Appointment Date and Time</string>
 
-    <!-- Button labels -->
-    <string name="upload_vitals_button">Upload Vitals</string>
-    <string name="save_medical_history_button">Save Medical History</string>
-    <string name="book_appointment_button">Book Appointment</string>
+    <!-- Button Text -->
+    <string name="save_medical_history">Save Medical History</string>
 
-    <!-- Vitals related strings -->
-    <string name="no_vitals_available">No vitals data available</string>
-    <string name="vitals_display">Latest Vitals:\nHR: %.1f bpm\nTemp: %.1f°C\nO₂: %d%%\nTime: %s</string>
-    <string name="fill_all_vital_fields">Please fill all vital fields</string>
-    <string name="enter_valid_numbers">Please enter valid numbers</string>
-    <string name="vitals_uploaded">Vitals uploaded successfully</string>
-    <string name="error_uploading_vitals">Error uploading vitals: %s</string>
-    <string name="failed_to_load_vitals">Failed to load vitals: %s</string>
-    <string name="unknown_time">Unknown Time</string>
-
-    <!-- Medical history strings -->
-    <string name="no_history_available">No medical history available</string>
-    <string name="history_display">Medical History:\nCondition: %s\nMedication: %s\nNote: %s</string>
-    <string name="enter_at_least_one_field">Please enter at least one field</string>
-    <string name="history_updated">Medical history updated successfully</string>
-    <string name="error_updating_history">Error updating history: %s</string>
-    <string name="failed_to_load_medical_history">Failed to load medical history: %s</string>
-
-    <!-- Doctor and appointment strings -->
-    <string name="loading_doctors">Loading doctors…</string>
-    <string name="select_doctor">Select Doctor</string>
-    <string name="no_doctors_available">No doctors available</string>
-    <string name="doctors_found">Found %d doctors</string>
-    <string name="failed_to_load_doctors">Failed to load doctors</string>
-    <string name="failed_to_load_doctors_error">Failed to load doctors: %s</string>
-    <string name="please_select_doctor">Please select a doctor</string>
-    <string name="please_select_appointment_time">Please select appointment time</string>
-    <string name="error_doctor_not_found">Error: Doctor not found</string>
-    <string name="appointment_booked_success">Appointment booked and doctor linked!</string>
-    <string name="failed_to_book_appointment">Failed to book appointment: %s</string>
-    <string name="failed_to_link_doctor">Failed to link doctor: %s</string>
-
-    <!-- Default values -->
-    <string name="not_available">N/A</string>
+    <!-- Popup Profile -->
+    <string name="default_user_name">Patient Name</string>
+    <string name="default_user_email">patient\@example.com</string>
+    <string name="default_user_role">Patient</string>
+    <string name="profile_settings">Profile Settings</string>
+    <string name="logout">Logout</string>
 </resources>
