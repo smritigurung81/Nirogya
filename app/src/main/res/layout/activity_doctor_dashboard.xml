@@ -70,7 +70,7 @@
             android:padding="8dp"
             android:layout_marginBottom="24dp" />
 
-        <!-- Placeholder for Add Notes & Vitals Dialog -->
+        <!-- Add Vitals & Notes (Hidden initially) -->
         <Button
             android:id="@+id/btnAddDoctorVitals"
             android:layout_width="match_parent"
@@ -81,9 +81,22 @@
             android:textStyle="bold"
             android:padding="14dp"
             android:elevation="4dp"
-            android:layout_marginBottom="32dp"
+            android:layout_marginBottom="16dp"
             android:visibility="gone" />
-        <!-- Hidden by default; only shown when a patient is selected -->
+
+        <!-- Logout Button -->
+        <Button
+            android:id="@+id/btnLogout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Logout"
+            android:textStyle="bold"
+            android:backgroundTint="#F44336"
+            android:textColor="@android:color/white"
+            android:padding="14dp"
+            android:elevation="4dp"
+            android:layout_marginBottom="32dp" />
 
     </LinearLayout>
 </ScrollView>
+
