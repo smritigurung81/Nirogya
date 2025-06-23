@@ -16,7 +16,8 @@
             android:layout_height="64dp"
             android:layout_gravity="center"
             android:layout_marginBottom="12dp"
-            android:src="@drawable/logo" />
+            android:src="@drawable/logo"
+            android:contentDescription="App Logo" />
 
         <!-- Welcome Message -->
         <TextView
@@ -66,7 +67,8 @@
             android:layout_height="200dp"
             android:scaleType="centerCrop"
             android:background="#DDDDDD"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp"
+            android:contentDescription="Report Preview" />
 
         <!-- Upload Report Button -->
         <Button
@@ -80,7 +82,7 @@
             android:padding="14dp"
             android:layout_marginBottom="24dp" />
 
-        <!-- Uploaded Reports Section Title -->
+        <!-- Section Title for Uploaded Reports -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -100,7 +102,7 @@
             android:background="@android:color/white"
             android:elevation="2dp"
             android:padding="8dp" />
-
     </LinearLayout>
 </ScrollView>
+
 

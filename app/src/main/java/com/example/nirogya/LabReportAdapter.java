@@ -1,14 +1,19 @@
 package com.example.nirogya;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.Glide;
+
 import java.util.List;
 
 public class LabReportAdapter extends RecyclerView.Adapter<LabReportAdapter.LabReportViewHolder> {
@@ -31,13 +36,20 @@ public class LabReportAdapter extends RecyclerView.Adapter<LabReportAdapter.LabR
     @Override
     public void onBindViewHolder(@NonNull LabReportViewHolder holder, int position) {
         LabReport report = reportList.get(position);
-        holder.tvTitle.setText(report.title);
-        holder.tvDate.setText(report.date);
+
+        holder.tvTitle.setText(report.getTitle());
+        holder.tvDate.setText(report.getDate());
 
         Glide.with(context)
-                .load(report.imageUrl)
-                .placeholder(R.drawable.placeholder) // optional
+                .load(report.getImageUrl())
+                .placeholder(R.drawable.placeholder) // Add a placeholder image in res/drawable
                 .into(holder.ivReport);
+
+        // Open image in browser or viewer on click
+        holder.ivReport.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(report.getImageUrl()));
+            context.startActivity(intent);
+        });
     }
 
     @Override
@@ -57,4 +69,6 @@ public class LabReportAdapter extends RecyclerView.Adapter<LabReportAdapter.LabR
         }
     }
 }
+
+
 

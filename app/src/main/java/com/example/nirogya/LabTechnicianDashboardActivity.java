@@ -9,9 +9,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
-import com.google.firebase.auth.FirebaseAuth;
+import com.cloudinary.android.MediaManager;
+import com.cloudinary.android.callback.ErrorInfo;
+import com.cloudinary.android.callback.UploadCallback;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.*;
 
 import java.util.*;
 
@@ -23,9 +24,6 @@ public class LabTechnicianDashboardActivity extends AppCompatActivity {
     private Uri imageUri;
 
     private FirebaseFirestore db;
-    private FirebaseStorage storage;
-    private StorageReference storageRef;
-
     private static final int PICK_IMAGE_REQUEST = 1;
 
     @Override
@@ -34,8 +32,16 @@ public class LabTechnicianDashboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_lab_technician_dashboard);
 
         db = FirebaseFirestore.getInstance();
-        storage = FirebaseStorage.getInstance();
-        storageRef = storage.getReference();
+
+        // Initialize Cloudinary - use try-catch approach
+        try {
+            MediaManager.get();
+        } catch (IllegalStateException e) {
+            // MediaManager not initialized, so initialize it
+            Map<String, String> config = new HashMap<>();
+            config.put("cloud_name", "dhooyk69h");  // Your cloud name
+            MediaManager.init(this, config);
+        }
 
         etPatientId = findViewById(R.id.etPatientId);
         etReportTitle = findViewById(R.id.etReportTitle);
@@ -79,38 +85,52 @@ public class LabTechnicianDashboardActivity extends AppCompatActivity {
         progressDialog.setMessage("Uploading report...");
         progressDialog.show();
 
-        String reportId = UUID.randomUUID().toString();
-        StorageReference imageRef = storageRef.child("lab_reports/" + uid + "/" + reportId + ".jpg");
+        MediaManager.get().upload(imageUri)
+                .callback(new UploadCallback() {
+                    @Override
+                    public void onStart(String requestId) {}
 
-        imageRef.putFile(imageUri).addOnSuccessListener(taskSnapshot -> {
-            imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                Map<String, Object> reportData = new HashMap<>();
-                reportData.put("title", title);
-                reportData.put("imageUrl", uri.toString());
-                reportData.put("date", new Date());
+                    @Override
+                    public void onProgress(String requestId, long bytes, long totalBytes) {}
 
-                db.collection("users").document(uid)
-                        .collection("lab_reports")
-                        .document(reportId)
-                        .set(reportData)
-                        .addOnSuccessListener(aVoid -> {
-                            progressDialog.dismiss();
-                            Toast.makeText(this, "Report uploaded successfully", Toast.LENGTH_SHORT).show();
-                            etPatientId.setText("");
-                            etReportTitle.setText("");
-                            ivReportPreview.setImageResource(0);
-                        })
-                        .addOnFailureListener(e -> {
-                            progressDialog.dismiss();
-                            Toast.makeText(this, "Failed to save data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        });
-            });
-        }).addOnFailureListener(e -> {
-            progressDialog.dismiss();
-            Toast.makeText(this, "Upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        });
+                    @Override
+                    public void onSuccess(String requestId, Map resultData) {
+                        String imageUrl = resultData.get("secure_url").toString();
+                        Map<String, Object> reportData = new HashMap<>();
+                        reportData.put("title", title);
+                        reportData.put("imageUrl", imageUrl);
+                        reportData.put("date", new Date());
+
+                        db.collection("users").document(uid)
+                                .collection("lab_reports")
+                                .document(UUID.randomUUID().toString())
+                                .set(reportData)
+                                .addOnSuccessListener(aVoid -> {
+                                    progressDialog.dismiss();
+                                    Toast.makeText(LabTechnicianDashboardActivity.this, "Report uploaded successfully", Toast.LENGTH_SHORT).show();
+                                    etPatientId.setText("");
+                                    etReportTitle.setText("");
+                                    ivReportPreview.setImageResource(0);
+                                })
+                                .addOnFailureListener(e -> {
+                                    progressDialog.dismiss();
+                                    Toast.makeText(LabTechnicianDashboardActivity.this, "Failed to save data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
+                    }
+
+                    @Override
+                    public void onError(String requestId, ErrorInfo error) {
+                        progressDialog.dismiss();
+                        Toast.makeText(LabTechnicianDashboardActivity.this, "Upload failed: " + error.getDescription(), Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onReschedule(String requestId, ErrorInfo error) {}
+                })
+                .dispatch();
     }
 }
+
 
 
 
