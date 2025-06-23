@@ -1,79 +1,144 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="#F9F9F9"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="24dp">
+    android:layout_height="match_parent">
 
     <LinearLayout
         android:orientation="vertical"
+        android:padding="24dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal">
 
-        <!-- Logo at the top -->
+        <!-- App Logo -->
         <ImageView
-            android:id="@+id/registerLogo"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:layout_marginBottom="24dp"
+            android:id="@+id/logoImage"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
             android:src="@drawable/logo"
+            android:layout_marginBottom="16dp"
             android:contentDescription="App Logo" />
 
-        <!-- Full Name input -->
+        <!-- Header -->
+        <TextView
+            android:text="Create Your Account"
+            android:textSize="22sp"
+            android:textColor="#212121"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <!-- Input Fields -->
         <EditText
-            android:id="@+id/etFullName"
+            android:id="@+id/etFirstName"
+            android:hint="First Name"
+            android:padding="12dp"
+            android:background="@drawable/edittext_background"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Full Name"
-            android:inputType="textPersonName"
+            android:layout_marginBottom="12dp" />
+
+        <EditText
+            android:id="@+id/etLastName"
+            android:hint="Last Name"
             android:padding="12dp"
-            android:layout_marginBottom="16dp"
-            android:background="@android:drawable/edit_text" />
+            android:background="@drawable/edittext_background"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" />
 
         <EditText
             android:id="@+id/etEmail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:hint="Email"
             android:inputType="textEmailAddress"
             android:padding="12dp"
-            android:layout_marginBottom="16dp"
-            android:background="@android:drawable/edit_text" />
+            android:background="@drawable/edittext_background"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" />
 
         <EditText
             android:id="@+id/etPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:hint="Password"
             android:inputType="textPassword"
             android:padding="12dp"
-            android:layout_marginBottom="16dp"
-            android:background="@android:drawable/edit_text" />
+            android:background="@drawable/edittext_background"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" />
 
         <Spinner
             android:id="@+id/roleSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:spinnerMode="dropdown"
-            android:padding="12dp" />
+            android:layout_marginBottom="16dp" />
 
-        <Button
-            android:id="@+id/btnRegister"
+        <!-- Doctor-specific -->
+        <LinearLayout
+            android:id="@+id/layoutDoctor"
+            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Register" />
+            android:visibility="gone"
+            android:layout_marginBottom="12dp">
 
+            <EditText
+                android:id="@+id/etNMC"
+                android:hint="NMC Number"
+                android:padding="12dp"
+                android:background="@drawable/edittext_background"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- Patient-specific -->
+        <LinearLayout
+            android:id="@+id/layoutPatient"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginBottom="12dp">
+
+            <EditText
+                android:id="@+id/etKnownDoctorNMC"
+                android:hint="Known Doctor NMC (optional)"
+                android:padding="12dp"
+                android:background="@drawable/edittext_background"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- Register Button -->
+        <Button
+            android:id="@+id/btnRegister"
+            android:text="Register"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#4CAF50"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="14dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Login Link -->
         <TextView
             android:id="@+id/tvLogin"
+            android:text="Already have an account? Login"
+            android:textColor="#4CAF50"
+            android:textStyle="bold"
+            android:gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Already have an account? Login"
-            android:textColor="@android:color/holo_blue_dark"
-            android:paddingTop="24dp"
-            android:layout_gravity="center_horizontal" />
+            android:layout_marginBottom="24dp" />
 
     </LinearLayout>
-
 </ScrollView>
+
+
+
+
+
 

@@ -2,265 +2,161 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ffffff">
+    android:background="#F5F8FA">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="20dp">
 
-        <!-- Top bar with Logo and Profile Menu -->
-        <LinearLayout
+        <!-- App Logo on Top -->
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center"
+            android:src="@drawable/logo"
+            android:contentDescription="App Logo"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Welcome Message -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome, Patient"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#333"
+            android:layout_gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Vitals Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Your Vitals"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#333"
+            android:layout_marginBottom="12dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvVitals"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
+            android:nestedScrollingEnabled="false"
+            android:background="@android:color/white"
+            android:elevation="2dp"
+            android:padding="8dp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Add Vitals Button -->
+        <Button
+            android:id="@+id/btnAddVitals"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="+ Add Vitals"
+            android:backgroundTint="#4CAF50"
+            android:textColor="@android:color/white"
             android:layout_marginBottom="24dp"
-            android:padding="16dp">
-
-            <ImageView
-                android:id="@+id/imageLogo"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:src="@drawable/logo"
-                android:contentDescription="@string/app_logo" />
-
-            <TextView
-                android:id="@+id/tvWelcomeMessage"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/welcome_patient"
-                android:textSize="18sp"
-                android:textColor="#333333"
-                android:gravity="center" />
-
-            <ImageView
-                android:id="@+id/profileMenu"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:src="@drawable/ic_profile"
-                android:contentDescription="@string/profile_menu"
-                android:padding="8dp" />
-        </LinearLayout>
-
-        <!-- Divider -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#e0e0e0"
-            android:layout_marginBottom="16dp" />
-
-        <!-- Latest Vitals Section -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="24dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/latest_vitals"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="#388e3c"
-                android:layout_marginBottom="12dp" />
-
-            <LinearLayout
-                android:id="@+id/vitalsDisplayLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="#e8f5e9"
-                android:padding="12dp"
-                android:layout_marginBottom="8dp" />
-        </LinearLayout>
-
-        <!-- Upload Vitals Section -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="24dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/upload_vitals"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="#00796b"
-                android:layout_marginBottom="12dp" />
-
-            <EditText
-                android:id="@+id/etHeartRate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/heart_rate_bpm"
-                android:inputType="numberDecimal"
-                android:layout_marginBottom="8dp"
-                android:autofillHints="none" />
-
-            <EditText
-                android:id="@+id/etTemperature"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/temperature_c"
-                android:inputType="numberDecimal"
-                android:layout_marginBottom="8dp"
-                android:autofillHints="none" />
-
-            <EditText
-                android:id="@+id/etOxygen"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/oxygen_level_percent"
-                android:inputType="number"
-                android:layout_marginBottom="12dp"
-                android:autofillHints="none" />
-
-            <Button
-                android:id="@+id/btnUploadVitals"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/upload_vitals"
-                android:background="#00796b"
-                android:textColor="#fff" />
-        </LinearLayout>
+            android:elevation="4dp"
+            android:padding="14dp"
+            android:textStyle="bold" />
 
         <!-- Medical History Section -->
-        <LinearLayout
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Medical History (Last 30 Days)"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#333"
+            android:layout_marginBottom="12dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvMedicalHistory"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="24dp">
+            android:nestedScrollingEnabled="false"
+            android:background="@android:color/white"
+            android:elevation="2dp"
+            android:padding="8dp"
+            android:layout_marginBottom="12dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/medical_history"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="#6a1b9a"
-                android:layout_marginBottom="12dp" />
-
-            <LinearLayout
-                android:id="@+id/medicalHistoryLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="#f3e5f5"
-                android:padding="12dp"
-                android:layout_marginBottom="8dp" />
-        </LinearLayout>
-
-        <!-- Update Medical History Section -->
-        <LinearLayout
+        <!-- Add Medical History Button -->
+        <Button
+            android:id="@+id/btnAddMedicalHistory"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="24dp">
+            android:text="+ Add Medical History"
+            android:backgroundTint="#4CAF50"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="24dp"
+            android:elevation="4dp"
+            android:padding="14dp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/update_medical_history"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="#6a1b9a"
-                android:layout_marginBottom="12dp" />
+        <!-- Doctor's Vitals & Notes Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Doctor's Vitals and Notes"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#333"
+            android:layout_marginBottom="12dp" />
 
-            <EditText
-                android:id="@+id/etCondition"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/condition"
-                android:layout_marginBottom="8dp"
-                android:inputType="text"
-                android:autofillHints="none" />
-
-            <EditText
-                android:id="@+id/etMedication"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/medication"
-                android:layout_marginBottom="8dp"
-                android:inputType="text"
-                android:autofillHints="none" />
-
-            <EditText
-                android:id="@+id/etNote"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/note"
-                android:layout_marginBottom="12dp"
-                android:inputType="text"
-                android:autofillHints="none" />
-
-            <Button
-                android:id="@+id/btnSaveHistory"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/save_medical_history"
-                android:background="#6a1b9a"
-                android:textColor="#fff" />
-        </LinearLayout>
-
-        <!-- Book Appointment Section (Manual Doctor Name input) -->
-        <LinearLayout
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvDoctorVitals"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="24dp">
+            android:nestedScrollingEnabled="false"
+            android:background="@android:color/white"
+            android:elevation="2dp"
+            android:padding="8dp"
+            android:layout_marginBottom="24dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/book_appointment"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="#0d47a1"
-                android:layout_marginBottom="12dp" />
+        <!-- Lab Reports Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lab Reports"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#333"
+            android:layout_marginBottom="12dp" />
 
-            <!-- Manual doctor name input -->
-            <EditText
-                android:id="@+id/etDoctorName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/enter_doctor_full_name"
-                android:inputType="textPersonName"
-                android:layout_marginBottom="8dp"
-                android:autofillHints="name" />
-
-            <EditText
-                android:id="@+id/etAppointmentDateTime"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/select_appointment_date_time"
-                android:focusable="false"
-                android:clickable="true"
-                android:inputType="none"
-                android:layout_marginBottom="12dp"
-                android:autofillHints="none" />
-
-            <Button
-                android:id="@+id/btnBookAppointment"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/book_appointment"
-                android:background="#0d47a1"
-                android:textColor="#fff" />
-        </LinearLayout>
-
-        <!-- Footer Space -->
-        <View
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvLabReports"
             android:layout_width="match_parent"
-            android:layout_height="32dp" />
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            android:background="@android:color/white"
+            android:elevation="2dp"
+            android:padding="8dp"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Book Appointment Button -->
+        <Button
+            android:id="@+id/btnBookAppointment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Book Appointment"
+            android:backgroundTint="#2196F3"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:elevation="4dp"
+            android:padding="14dp" />
 
     </LinearLayout>
-
 </ScrollView>
+
+
+
+
+
+
+
+
 
 

@@ -1,42 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Patient Dashboard</string>
-
-    <!-- Content Descriptions -->
-    <string name="app_logo">App Logo</string>
-    <string name="profile_menu">Profile Menu</string>
-    <string name="profile_icon">Profile icon</string>
-    <string name="person_icon">Person icon</string>
-    <string name="user_icon">User icon</string>
-    <string name="email_icon">Email icon</string>
-    <string name="role_icon">Role icon</string>
-    <string name="settings_icon">Settings icon</string>
-    <string name="logout_icon">Logout Icon</string>
-
-    <!-- Text Labels -->
-    <string name="welcome_patient">Welcome Patient</string>
-    <string name="latest_vitals">Latest Vitals:</string>
-    <string name="upload_vitals">Upload Vitals</string>
-    <string name="medical_history">Medical History:</string>
-    <string name="update_medical_history">Update Medical History:</string>
-    <string name="book_appointment">Book Appointment:</string>
-
-    <!-- Hints -->
-    <string name="heart_rate_bpm">Heart Rate (bpm)</string>
-    <string name="temperature_c">Temperature (C)</string>
-    <string name="oxygen_level_percent">Oxygen Level (%)</string>
-    <string name="condition">Condition</string>
-    <string name="medication">Medication</string>
-    <string name="note">Note</string>
-    <string name="enter_doctor_full_name">Enter Doctor\'s Full Name</string>
-    <string name="select_appointment_date_time">Select Appointment Date and Time</string>
-
-    <!-- Button Text -->
-    <string name="save_medical_history">Save Medical History</string>
-
-    <!-- Popup Profile -->
-    <string name="default_user_name">Patient Name</string>
-    <string name="default_user_email">patient\@example.com</string>
-    <string name="default_user_role">Patient</string>
-    <string name="profile_settings">Profile Settings</string>
-    <string name="logout">Logout</string>
+    <string name="app_name">Nirogya</string>
 </resources>
+
+
+
