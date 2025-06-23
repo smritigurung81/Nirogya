@@ -20,6 +20,10 @@ room = "2.7.2"
 mpandroidchart = "3.1.0"
 
 [libraries]
+
+#Cloudinary
+cloudinary = { group = "com.cloudinary", name = "cloudinary-android", version = "2.3.1" }
+
 # AndroidX
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

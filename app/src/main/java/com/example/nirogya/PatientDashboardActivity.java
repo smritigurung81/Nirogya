@@ -8,18 +8,17 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
+import java.util.Locale;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.*;
 import com.google.firebase.firestore.*;
-import com.google.firebase.firestore.EventListener;
+
 
 import java.util.*;
 
 public class PatientDashboardActivity extends AppCompatActivity {
 
     FirebaseFirestore db;
-    FirebaseDatabase realtimeDb;
+
     FirebaseAuth mAuth;
     String uid;
 
@@ -33,9 +32,15 @@ public class PatientDashboardActivity extends AppCompatActivity {
 
         // Firebase setup
         db = FirebaseFirestore.getInstance();
-        realtimeDb = FirebaseDatabase.getInstance();
         mAuth = FirebaseAuth.getInstance();
-        uid = mAuth.getCurrentUser().getUid();
+        if (mAuth.getCurrentUser() != null) {
+            uid = mAuth.getCurrentUser().getUid();
+        } else {
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
+            finish(); // or redirect to LoginActivity if preferred
+            return;
+        }
+
 
         // UI setup
         btnAddVitals = findViewById(R.id.btnAddVitals);
@@ -84,7 +89,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
             String selectedDate = day + "/" + (month + 1) + "/" + year;
 
             TimePickerDialog timePickerDialog = new TimePickerDialog(this, (v, hour, minute) -> {
-                String selectedTime = String.format("%02d:%02d", hour, minute);
+                String selectedTime = String.format(Locale.US, "%02d:%02d", hour, minute);
                 saveAppointment(selectedDate, selectedTime);
             }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false);
 
@@ -162,27 +167,22 @@ public class PatientDashboardActivity extends AppCompatActivity {
     }
 
     private void loadLabReports() {
-        DatabaseReference reportsRef = realtimeDb.getReference("lab_reports").child(uid);
+        db.collection("users").document(uid).collection("lab_reports")
+                .orderBy("date", Query.Direction.DESCENDING)
+                .addSnapshotListener((value, error) -> {
+                    if (error != null || value == null) return;
 
-        reportsRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                List<LabReport> reportList = new ArrayList<>();
-                for (DataSnapshot snap : snapshot.getChildren()) {
-                    LabReport report = snap.getValue(LabReport.class);
-                    reportList.add(report);
-                }
+                    List<LabReport> reportList = new ArrayList<>();
+                    for (DocumentSnapshot doc : value.getDocuments()) {
+                        LabReport report = doc.toObject(LabReport.class);
+                        reportList.add(report);
+                    }
 
-                LabReportAdapter adapter = new LabReportAdapter(PatientDashboardActivity.this, reportList);
-                rvLabReports.setAdapter(adapter);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-                Toast.makeText(PatientDashboardActivity.this, "Failed to load lab reports", Toast.LENGTH_SHORT).show();
-            }
-        });
+                    LabReportAdapter adapter = new LabReportAdapter(this, reportList);
+                    rvLabReports.setAdapter(adapter);
+                });
     }
+
 }
 
 
