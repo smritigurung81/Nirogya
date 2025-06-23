@@ -12,7 +12,9 @@
         android:layout_height="32dp"
         android:layout_gravity="center_vertical"
         android:src="@android:drawable/ic_menu_info_details"
-        android:layout_marginEnd="16dp" />
+        android:layout_marginEnd="16dp"
+        android:contentDescription="Vital Icon" />
+
 
     <LinearLayout
         android:layout_width="0dp"

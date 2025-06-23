@@ -11,15 +11,18 @@ import java.util.List;
 
 public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.AppointmentViewHolder> {
 
-    private List<Appointment> appointmentList;
-    private OnAppointmentActionListener listener;
+    private final List<Appointment> appointmentList;
+    private final boolean isDoctorView;
+    private final OnAppointmentActionListener listener;
 
     public interface OnAppointmentActionListener {
         void onAppointmentAction(Appointment appointment, boolean isAccepted);
     }
 
-    public AppointmentAdapter(List<Appointment> appointmentList, OnAppointmentActionListener listener) {
+    // Updated constructor for flexible use
+    public AppointmentAdapter(List<Appointment> appointmentList, boolean isDoctorView, OnAppointmentActionListener listener) {
         this.appointmentList = appointmentList;
+        this.isDoctorView = isDoctorView;
         this.listener = listener;
     }
 
@@ -43,8 +46,8 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
     }
 
     class AppointmentViewHolder extends RecyclerView.ViewHolder {
-        private TextView tvPatientName, tvDoctorName, tvDate, tvTime, tvStatus;
-        private Button btnAccept, btnDecline;
+        private final TextView tvPatientName, tvDoctorName, tvDate, tvTime, tvStatus;
+        private final Button btnAccept, btnDecline;
 
         public AppointmentViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -64,18 +67,22 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
             tvTime.setText(appointment.getTime());
             tvStatus.setText(appointment.getStatus());
 
-            // Set button click listeners
-            btnAccept.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onAppointmentAction(appointment, true);
-                }
-            });
+            // Toggle button visibility based on role
+            if (isDoctorView) {
+                btnAccept.setVisibility(View.VISIBLE);
+                btnDecline.setVisibility(View.VISIBLE);
 
-            btnDecline.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onAppointmentAction(appointment, false);
-                }
-            });
+                btnAccept.setOnClickListener(v -> {
+                    if (listener != null) listener.onAppointmentAction(appointment, true);
+                });
+
+                btnDecline.setOnClickListener(v -> {
+                    if (listener != null) listener.onAppointmentAction(appointment, false);
+                });
+            } else {
+                btnAccept.setVisibility(View.GONE);
+                btnDecline.setVisibility(View.GONE);
+            }
         }
     }
 }

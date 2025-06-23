@@ -11,6 +11,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.Locale;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.*;
+import com.example.nirogya.services.VitalsService;
+import com.example.nirogya.services.MedicalHistoryService;
+import com.example.nirogya.MedicalHistoryInputDialog;
+import com.example.nirogya.adapters.MedicalHistoryAdapter;
+import com.example.nirogya.models.MedicalHistory;
+import com.example.nirogya.Vital;
+import com.example.nirogya.VitalsAdapter;
+import com.example.nirogya.services.AppointmentService;
+import com.example.nirogya.services.LabReportService;
+
 
 
 import java.util.*;
@@ -18,11 +28,19 @@ import java.util.*;
 public class PatientDashboardActivity extends AppCompatActivity {
 
     FirebaseFirestore db;
+    VitalsService vitalsService;
+    LabReportService labReportService;
 
     FirebaseAuth mAuth;
     String uid;
+    AppointmentService appointmentService;
+    AppointmentAdapter appointmentAdapter;
 
+    MedicalHistoryService medicalHistoryService;
+    MedicalHistoryAdapter medicalHistoryAdapter;
     Button btnAddVitals, btnBookAppointment;
+    Button btnAddMedicalHistory;
+
     RecyclerView rvVitals, rvMedicalHistory, rvDoctorVitals, rvLabReports;
 
     @Override
@@ -33,6 +51,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
         // Firebase setup
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
+
         if (mAuth.getCurrentUser() != null) {
             uid = mAuth.getCurrentUser().getUid();
         } else {
@@ -41,9 +60,16 @@ public class PatientDashboardActivity extends AppCompatActivity {
             return;
         }
 
+        // Initialize Services
+        vitalsService = new VitalsService(this, db, uid);
+        medicalHistoryService = new MedicalHistoryService(this, db, uid);
+        appointmentService = new AppointmentService(this, db, uid);
+        labReportService = new LabReportService(this, FirebaseFirestore.getInstance());
+
 
         // UI setup
         btnAddVitals = findViewById(R.id.btnAddVitals);
+        btnAddMedicalHistory = findViewById(R.id.btnAddMedicalHistory);
         btnBookAppointment = findViewById(R.id.btnBookAppointment);
 
         rvVitals = findViewById(R.id.rvVitals);
@@ -56,30 +82,24 @@ public class PatientDashboardActivity extends AppCompatActivity {
         rvDoctorVitals.setLayoutManager(new LinearLayoutManager(this));
         rvLabReports.setLayoutManager(new LinearLayoutManager(this));
 
+        // Handle +Add Vitals button
+        btnAddVitals.setOnClickListener(v -> PatientVitalsInputDialog.show(this, (systolic, diastolic, hr, oxygen, temp) -> {
+            String bp = systolic + "/" + diastolic;
+            vitalsService.addVitals(bp, oxygen, hr, temp);
+        }));
+
+        // Add medical history
+        btnAddMedicalHistory.setOnClickListener(v -> MedicalHistoryInputDialog.show(this, (disease, duration, remarks) -> medicalHistoryService.addMedicalHistory(disease, duration, remarks)));
+
+
         // Button Listeners
-        btnAddVitals.setOnClickListener(v -> addVitals());
         btnBookAppointment.setOnClickListener(v -> openAppointmentDialog());
 
         // Load data
         loadVitals();
         loadMedicalHistory();
         loadDoctorVitals();
-        loadLabReports(); // now from Realtime DB
-    }
-
-    private void addVitals() {
-        Map<String, Object> vitals = new HashMap<>();
-        vitals.put("pressure", "100 bpm");
-        vitals.put("oxygen", "96%");
-        vitals.put("heartRate", "88 bpm");
-        vitals.put("temperature", "37.5°C");
-        vitals.put("date", new Date());
-
-        db.collection("users").document(uid)
-                .collection("vitals_user")
-                .add(vitals)
-                .addOnSuccessListener(doc -> Toast.makeText(this, "Vitals added", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        loadLabReports();
     }
 
     private void openAppointmentDialog() {
@@ -90,35 +110,36 @@ public class PatientDashboardActivity extends AppCompatActivity {
 
             TimePickerDialog timePickerDialog = new TimePickerDialog(this, (v, hour, minute) -> {
                 String selectedTime = String.format(Locale.US, "%02d:%02d", hour, minute);
-                saveAppointment(selectedDate, selectedTime);
+                // Fetch the linked doctor ID before booking
+                db.collection("users").document(uid).get().addOnSuccessListener(doc -> {
+                    String doctorId = doc.getString("linkedDoctorId");
+                    if (doctorId == null || doctorId.isEmpty()) {
+                        Toast.makeText(this, "No doctor linked.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    appointmentService.bookAppointment(doctorId, selectedDate, selectedTime, new AppointmentService.AppointmentCallback() {
+                        @Override
+                        public void onSuccess() {
+                            Toast.makeText(PatientDashboardActivity.this, "Appointment requested", Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onFailure(String errorMessage) {
+                            Toast.makeText(PatientDashboardActivity.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                }).addOnFailureListener(e ->
+                        Toast.makeText(this, "Error fetching user: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
+
             }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false);
 
             timePickerDialog.show();
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
 
         datePickerDialog.show();
-    }
-
-    private void saveAppointment(String date, String time) {
-        db.collection("users").document(uid).get().addOnSuccessListener(doc -> {
-            String doctorId = doc.getString("linkedDoctorId");
-            if (doctorId == null) {
-                Toast.makeText(this, "No doctor linked.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            Map<String, Object> appointment = new HashMap<>();
-            appointment.put("patientId", uid);
-            appointment.put("doctorId", doctorId);
-            appointment.put("date", date);
-            appointment.put("time", time);
-            appointment.put("status", "pending");
-
-            db.collection("appointments")
-                    .add(appointment)
-                    .addOnSuccessListener(r -> Toast.makeText(this, "Appointment requested", Toast.LENGTH_SHORT).show())
-                    .addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-        });
     }
 
     private void loadVitals() {
@@ -154,7 +175,15 @@ public class PatientDashboardActivity extends AppCompatActivity {
                 .whereGreaterThanOrEqualTo("date", monthAgo)
                 .orderBy("date", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
-                    // TODO: bind to adapter
+                    List<MedicalHistory> historyList = new ArrayList<>();
+                    assert value != null;
+                    for (DocumentSnapshot doc : value.getDocuments()) {
+                        MedicalHistory history = doc.toObject(MedicalHistory.class);
+                        historyList.add(history);
+                    }
+                    medicalHistoryAdapter = new MedicalHistoryAdapter(historyList);
+                    rvMedicalHistory.setAdapter(medicalHistoryAdapter);
+
                 });
     }
 
@@ -162,26 +191,47 @@ public class PatientDashboardActivity extends AppCompatActivity {
         db.collection("users").document(uid).collection("doctor_vitals")
                 .orderBy("date", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
-                    // TODO: bind to adapter
-                });
-    }
-
-    private void loadLabReports() {
-        db.collection("users").document(uid).collection("lab_reports")
-                .orderBy("date", Query.Direction.DESCENDING)
-                .addSnapshotListener((value, error) -> {
                     if (error != null || value == null) return;
 
-                    List<LabReport> reportList = new ArrayList<>();
+                    List<Vital> doctorVitals = new ArrayList<>();
                     for (DocumentSnapshot doc : value.getDocuments()) {
-                        LabReport report = doc.toObject(LabReport.class);
-                        reportList.add(report);
+                        String systolic = doc.getString("systolic");
+                        String diastolic = doc.getString("diastolic");
+                        String bp = systolic + "/" + diastolic;
+                        String oxygen = doc.getString("oxygen");
+                        String hr = doc.getString("heartRate");
+                        String temp = doc.getString("temperature");
+                        String note = doc.getString("note");
+
+                        doctorVitals.add(new Vital("Blood Pressure", bp, R.drawable.ic_blood_pressure));
+                        doctorVitals.add(new Vital("Oxygen", oxygen, R.drawable.ic_oxygen));
+                        doctorVitals.add(new Vital("Temperature", temp, R.drawable.ic_temperature));
+                        doctorVitals.add(new Vital("Heart Rate", hr, R.drawable.ic_heart_rate));
+                        doctorVitals.add(new Vital("Doctor Note", note, R.drawable.ic_note));
+                        break; // show only latest set
                     }
 
-                    LabReportAdapter adapter = new LabReportAdapter(this, reportList);
-                    rvLabReports.setAdapter(adapter);
+                    VitalsAdapter adapter = new VitalsAdapter(doctorVitals);
+                    rvDoctorVitals.setAdapter(adapter);
                 });
     }
+
+
+    private void loadLabReports() {
+        labReportService.fetchLabReports(uid, new LabReportService.LabReportCallback() {
+            @Override
+            public void onReportsFetched(List<LabReport> reports) {
+                LabReportAdapter adapter = new LabReportAdapter(PatientDashboardActivity.this, reports);
+                rvLabReports.setAdapter(adapter);
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(PatientDashboardActivity.this, error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
 
 }
 

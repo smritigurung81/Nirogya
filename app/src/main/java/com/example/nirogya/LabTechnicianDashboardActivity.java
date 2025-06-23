@@ -7,11 +7,14 @@ import android.os.Bundle;
 import android.widget.*;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-
+import java.util.Map;
+import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import com.bumptech.glide.Glide;
 import com.cloudinary.android.MediaManager;
 import com.cloudinary.android.callback.ErrorInfo;
 import com.cloudinary.android.callback.UploadCallback;
+import com.example.nirogya.services.LabReportService;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.*;
@@ -23,44 +26,50 @@ public class LabTechnicianDashboardActivity extends AppCompatActivity {
     private Button btnChooseImage, btnUploadReport;
     private Uri imageUri;
 
-    private FirebaseFirestore db;
     private static final int PICK_IMAGE_REQUEST = 1;
+
+    private LabReportService labReportService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lab_technician_dashboard);
 
-        db = FirebaseFirestore.getInstance();
-
-        // Initialize Cloudinary - use try-catch approach
+        // Initialize MediaManager (Cloudinary)
         try {
             MediaManager.get();
         } catch (IllegalStateException e) {
-            // MediaManager not initialized, so initialize it
             Map<String, String> config = new HashMap<>();
-            config.put("cloud_name", "dhooyk69h");  // Your cloud name
+            config.put("cloud_name", "dhooyk69h");  // Replace with your actual cloud name
+            config.put("api_key", "141128198432229");  // Your API key
+            config.put("api_secret", "ssG-b2okdn-XoehpCfxV9LAqKBg");  // Your API secret
             MediaManager.init(this, config);
         }
 
+        // Initialize UI elements
         etPatientId = findViewById(R.id.etPatientId);
         etReportTitle = findViewById(R.id.etReportTitle);
         ivReportPreview = findViewById(R.id.ivReportPreview);
         btnChooseImage = findViewById(R.id.btnChooseImage);
         btnUploadReport = findViewById(R.id.btnUploadReport);
 
+        // Initialize LabReportService
+        labReportService = new LabReportService(this, FirebaseFirestore.getInstance());
+
+        // Image picker
         btnChooseImage.setOnClickListener(v -> openImagePicker());
 
+        // Upload report
         btnUploadReport.setOnClickListener(v -> {
-            String uid = etPatientId.getText().toString().trim();
+            String patientId = etPatientId.getText().toString().trim();
             String title = etReportTitle.getText().toString().trim();
 
-            if (uid.isEmpty() || title.isEmpty() || imageUri == null) {
+            if (patientId.isEmpty() || title.isEmpty() || imageUri == null) {
                 Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            uploadLabReport(uid, title, imageUri);
+            uploadToCloudinary(patientId, title, imageUri);
         });
     }
 
@@ -73,17 +82,20 @@ public class LabTechnicianDashboardActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
             imageUri = data.getData();
             Glide.with(this).load(imageUri).into(ivReportPreview);
         }
     }
 
-    private void uploadLabReport(String uid, String title, Uri imageUri) {
-        ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Uploading report...");
-        progressDialog.show();
+    private void uploadToCloudinary(String patientId, String title, Uri imageUri) {
+        ProgressDialog dialog = new ProgressDialog(this);
+        dialog.setMessage("Uploading report...");
+        dialog.setCancelable(false);
+        dialog.show();
+
+        // Use AtomicReference to handle the imageUrl properly in callback
+        final AtomicReference<String> imageUrl = new AtomicReference<>("");
 
         MediaManager.get().upload(imageUri)
                 .callback(new UploadCallback() {
@@ -95,33 +107,31 @@ public class LabTechnicianDashboardActivity extends AppCompatActivity {
 
                     @Override
                     public void onSuccess(String requestId, Map resultData) {
-                        String imageUrl = resultData.get("secure_url").toString();
-                        Map<String, Object> reportData = new HashMap<>();
-                        reportData.put("title", title);
-                        reportData.put("imageUrl", imageUrl);
-                        reportData.put("date", new Date());
+                        imageUrl.set(resultData.get("secure_url").toString());
 
-                        db.collection("users").document(uid)
-                                .collection("lab_reports")
-                                .document(UUID.randomUUID().toString())
-                                .set(reportData)
-                                .addOnSuccessListener(aVoid -> {
-                                    progressDialog.dismiss();
-                                    Toast.makeText(LabTechnicianDashboardActivity.this, "Report uploaded successfully", Toast.LENGTH_SHORT).show();
-                                    etPatientId.setText("");
-                                    etReportTitle.setText("");
-                                    ivReportPreview.setImageResource(0);
-                                })
-                                .addOnFailureListener(e -> {
-                                    progressDialog.dismiss();
-                                    Toast.makeText(LabTechnicianDashboardActivity.this, "Failed to save data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                });
+                        labReportService.uploadLabReport(patientId, title, imageUrl.get(), new LabReportService.ReportUploadCallback() {
+                            @Override
+                            public void onSuccess() {
+                                dialog.dismiss();
+                                Toast.makeText(LabTechnicianDashboardActivity.this, "Report uploaded successfully", Toast.LENGTH_SHORT).show();
+                                etPatientId.setText("");
+                                etReportTitle.setText("");
+                                ivReportPreview.setImageDrawable(null);
+                                imageUri = null;
+                            }
+
+                            @Override
+                            public void onFailure(String error) {
+                                dialog.dismiss();
+                                Toast.makeText(LabTechnicianDashboardActivity.this, "Upload failed: " + error, Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
 
                     @Override
                     public void onError(String requestId, ErrorInfo error) {
-                        progressDialog.dismiss();
-                        Toast.makeText(LabTechnicianDashboardActivity.this, "Upload failed: " + error.getDescription(), Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                        Toast.makeText(LabTechnicianDashboardActivity.this, "Cloudinary error: " + error.getDescription(), Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
@@ -130,7 +140,3 @@ public class LabTechnicianDashboardActivity extends AppCompatActivity {
                 .dispatch();
     }
 }
-
-
-
-

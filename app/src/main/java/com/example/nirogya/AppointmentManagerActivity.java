@@ -1,17 +1,17 @@
 package com.example.nirogya;
 
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.nirogya.services.AppointmentService;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.*;
-import java.util.*;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AppointmentManagerActivity extends AppCompatActivity {
 
@@ -23,50 +23,63 @@ public class AppointmentManagerActivity extends AppCompatActivity {
     private AppointmentAdapter adapter;
     private List<Appointment> appointmentList;
 
+    private AppointmentService appointmentService;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_appointment_manager);
 
+        // Firebase
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
-        doctorUid = mAuth.getCurrentUser().getUid();
+        doctorUid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
 
+        // Initialize appointment service
+        appointmentService = new AppointmentService(this, db, doctorUid);
+
+        // RecyclerView setup
         rvAppointments = findViewById(R.id.rvAppointments);
         rvAppointments.setLayoutManager(new LinearLayoutManager(this));
 
         appointmentList = new ArrayList<>();
-        adapter = new AppointmentAdapter(appointmentList, this::handleAppointmentAction);
+
+        // Pass `true` to show Accept/Decline buttons for doctor
+        adapter = new AppointmentAdapter(appointmentList, true, this::handleAppointmentAction);
         rvAppointments.setAdapter(adapter);
 
         loadAppointments();
     }
 
     private void loadAppointments() {
-        db.collection("appointments")
-                .whereEqualTo("doctorId", doctorUid)
-                .whereEqualTo("status", "pending")
-                .addSnapshotListener((value, error) -> {
-                    if (error != null || value == null) return;
+        appointmentService.fetchDoctorAppointments(doctorUid, new AppointmentService.AppointmentFetchCallback() {
+            @Override
+            public void onAppointmentsFetched(List<Appointment> list) {
+                appointmentList.clear();
+                appointmentList.addAll(list);
+                adapter.notifyDataSetChanged();
+            }
 
-                    appointmentList.clear();
-                    for (DocumentSnapshot doc : value.getDocuments()) {
-                        Appointment appointment = doc.toObject(Appointment.class);
-                        appointment.setId(doc.getId());
-                        appointmentList.add(appointment);
-                    }
-                    adapter.notifyDataSetChanged();
-                });
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(AppointmentManagerActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void handleAppointmentAction(Appointment appointment, boolean isAccepted) {
-        db.collection("appointments")
-                .document(appointment.getId())
-                .update("status", isAccepted ? "accepted" : "declined")
-                .addOnSuccessListener(aVoid -> Toast.makeText(this,
-                        "Appointment " + (isAccepted ? "accepted" : "declined"), Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(this,
-                        "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        appointmentService.updateAppointmentStatus(appointment.getId(), isAccepted, new AppointmentService.AppointmentCallback() {
+            @Override
+            public void onSuccess() {
+                Toast.makeText(AppointmentManagerActivity.this,
+                        "Appointment " + (isAccepted ? "accepted" : "declined"), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                Toast.makeText(AppointmentManagerActivity.this,
+                        "Error: " + errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
-

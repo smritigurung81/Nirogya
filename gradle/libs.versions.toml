@@ -22,7 +22,8 @@ mpandroidchart = "3.1.0"
 [libraries]
 
 #Cloudinary
-cloudinary = { group = "com.cloudinary", name = "cloudinary-android", version = "2.5.0" }
+cloudinary = { group = "com.cloudinary", name = "cloudinary-android", version = "3.0.2" }
+
 
 # AndroidX
 junit = { group = "junit", name = "junit", version.ref = "junit" }
