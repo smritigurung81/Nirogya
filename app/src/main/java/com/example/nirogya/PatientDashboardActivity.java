@@ -3,23 +3,26 @@ package com.example.nirogya;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.*;
 import com.google.firebase.firestore.*;
+import com.google.firebase.firestore.EventListener;
+
 import java.util.*;
 
 public class PatientDashboardActivity extends AppCompatActivity {
 
     FirebaseFirestore db;
+    FirebaseDatabase realtimeDb;
     FirebaseAuth mAuth;
     String uid;
 
-    // UI Elements
     Button btnAddVitals, btnBookAppointment;
     RecyclerView rvVitals, rvMedicalHistory, rvDoctorVitals, rvLabReports;
 
@@ -30,6 +33,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
 
         // Firebase setup
         db = FirebaseFirestore.getInstance();
+        realtimeDb = FirebaseDatabase.getInstance();
         mAuth = FirebaseAuth.getInstance();
         uid = mAuth.getCurrentUser().getUid();
 
@@ -47,7 +51,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
         rvDoctorVitals.setLayoutManager(new LinearLayoutManager(this));
         rvLabReports.setLayoutManager(new LinearLayoutManager(this));
 
-        // Click Listeners
+        // Button Listeners
         btnAddVitals.setOnClickListener(v -> addVitals());
         btnBookAppointment.setOnClickListener(v -> openAppointmentDialog());
 
@@ -55,7 +59,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
         loadVitals();
         loadMedicalHistory();
         loadDoctorVitals();
-        loadLabReports();
+        loadLabReports(); // now from Realtime DB
     }
 
     private void addVitals() {
@@ -76,11 +80,11 @@ public class PatientDashboardActivity extends AppCompatActivity {
     private void openAppointmentDialog() {
         Calendar calendar = Calendar.getInstance();
 
-        DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
-            String selectedDate = dayOfMonth + "/" + (month + 1) + "/" + year;
+        DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, year, month, day) -> {
+            String selectedDate = day + "/" + (month + 1) + "/" + year;
 
-            TimePickerDialog timePickerDialog = new TimePickerDialog(this, (timeView, hourOfDay, minute) -> {
-                String selectedTime = String.format("%02d:%02d", hourOfDay, minute);
+            TimePickerDialog timePickerDialog = new TimePickerDialog(this, (v, hour, minute) -> {
+                String selectedTime = String.format("%02d:%02d", hour, minute);
                 saveAppointment(selectedDate, selectedTime);
             }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false);
 
@@ -117,6 +121,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
                 .orderBy("date", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (error != null || value == null) return;
+
                     List<Vital> vitals = new ArrayList<>();
                     for (DocumentSnapshot doc : value.getDocuments()) {
                         String bp = doc.getString("pressure");
@@ -128,7 +133,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
                         vitals.add(new Vital("Oxygen", oxygen, R.drawable.ic_oxygen));
                         vitals.add(new Vital("Temperature", temp, R.drawable.ic_temperature));
                         vitals.add(new Vital("Heart Rate", hr, R.drawable.ic_heart_rate));
-                        break; // show only the latest entry
+                        break; // only show latest
                     }
                     VitalsAdapter adapter = new VitalsAdapter(vitals);
                     rvVitals.setAdapter(adapter);
@@ -144,7 +149,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
                 .whereGreaterThanOrEqualTo("date", monthAgo)
                 .orderBy("date", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
-                    // TODO: bind data to RecyclerView adapter
+                    // TODO: bind to adapter
                 });
     }
 
@@ -152,18 +157,34 @@ public class PatientDashboardActivity extends AppCompatActivity {
         db.collection("users").document(uid).collection("doctor_vitals")
                 .orderBy("date", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
-                    // TODO: bind data to RecyclerView adapter
+                    // TODO: bind to adapter
                 });
     }
 
     private void loadLabReports() {
-        db.collection("users").document(uid).collection("lab_reports")
-                .orderBy("date", Query.Direction.DESCENDING)
-                .addSnapshotListener((value, error) -> {
-                    // TODO: bind data to RecyclerView adapter
-                });
+        DatabaseReference reportsRef = realtimeDb.getReference("lab_reports").child(uid);
+
+        reportsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                List<LabReport> reportList = new ArrayList<>();
+                for (DataSnapshot snap : snapshot.getChildren()) {
+                    LabReport report = snap.getValue(LabReport.class);
+                    reportList.add(report);
+                }
+
+                LabReportAdapter adapter = new LabReportAdapter(PatientDashboardActivity.this, reportList);
+                rvLabReports.setAdapter(adapter);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Toast.makeText(PatientDashboardActivity.this, "Failed to load lab reports", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
+
 
 
 

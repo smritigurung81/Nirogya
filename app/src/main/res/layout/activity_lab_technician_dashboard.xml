@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F8FA"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- App Logo -->
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="64dp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="12dp"
+            android:src="@drawable/logo" />
+
+        <!-- Welcome Message -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome, Lab Technician"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#333"
+            android:layout_gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Patient UID Input -->
+        <EditText
+            android:id="@+id/etPatientId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter Patient UID"
+            android:background="@android:drawable/edit_text"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Report Title Input -->
+        <EditText
+            android:id="@+id/etReportTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Report Title"
+            android:background="@android:drawable/edit_text"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Choose Image Button -->
+        <Button
+            android:id="@+id/btnChooseImage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Choose Image"
+            android:backgroundTint="#1976D2"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Image Preview -->
+        <ImageView
+            android:id="@+id/ivReportPreview"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:scaleType="centerCrop"
+            android:background="#DDDDDD"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Upload Report Button -->
+        <Button
+            android:id="@+id/btnUploadReport"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Upload Report"
+            android:backgroundTint="#388E3C"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:padding="14dp"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Uploaded Reports Section Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Uploaded Lab Reports"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#333"
+            android:layout_marginBottom="12dp" />
+
+        <!-- RecyclerView to display uploaded reports -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvUploadedReports"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"
+            android:nestedScrollingEnabled="false"
+            android:background="@android:color/white"
+            android:elevation="2dp"
+            android:padding="8dp" />
+
+    </LinearLayout>
+</ScrollView>
+
