@@ -40,6 +40,9 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.recyclerview)
+    implementation(libs.cardview)
+
 
     // Firebase
     implementation(libs.firebase.auth)
@@ -49,6 +52,10 @@ dependencies {
     // Room (with kapt)
     implementation(libs.room.runtime)
     annotationProcessor(libs.room.compiler)
+
+    // Glide
+    implementation(libs.glide)
+    annotationProcessor(libs.glide.compiler)
 
     // MPAndroidChart
     implementation(libs.mpandroidchart)

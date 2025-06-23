@@ -136,7 +136,7 @@ public class RegisterActivity extends AppCompatActivity {
         db.collection("users").document(uid).set(userData)
                 .addOnSuccessListener(unused -> {
                     Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(this, MainActivity.class));
+                    startActivity(new Intent(this, PatientDashboardActivity.class));
                     finish();
                 })
                 .addOnFailureListener(e ->
