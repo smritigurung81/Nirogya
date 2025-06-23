@@ -2,10 +2,9 @@ package com.example.nirogya;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.Toast;
-import android.app.AlertDialog;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -23,6 +22,7 @@ public class DoctorDashboardActivity extends AppCompatActivity {
     String doctorNMC;
     RecyclerView rvPatients;
     PatientListAdapter adapter;
+    Button btnLogout; // Added logout button reference
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,9 +33,20 @@ public class DoctorDashboardActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
         rvPatients = findViewById(R.id.rvAssignedPatients);
         rvPatients.setLayoutManager(new LinearLayoutManager(this));
+        btnLogout = findViewById(R.id.btnLogout); // Link to XML button
+
+        // Handle logout
+        btnLogout.setOnClickListener(v -> {
+            auth.signOut();
+            Toast.makeText(this, "Logged out", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // prevent back nav
+            startActivity(intent);
+            finish();
+        });
 
         // Get NMC number from the currently logged-in doctor's document
-        db.collection("doctors").document(auth.getCurrentUser().getUid())
+        db.collection("users").document(auth.getCurrentUser().getUid())
                 .get()
                 .addOnSuccessListener(doc -> {
                     doctorNMC = doc.getString("nmcNumber");
@@ -57,7 +68,6 @@ public class DoctorDashboardActivity extends AppCompatActivity {
                     for (DocumentSnapshot snapshot : query.getDocuments()) {
                         Patient patient = snapshot.toObject(Patient.class);
                         if (patient != null) {
-                            // Firestore doesn't include the document ID in the object by default
                             patient.setUid(snapshot.getId());
                             patientList.add(patient);
                         }
@@ -68,5 +78,6 @@ public class DoctorDashboardActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to load patients", Toast.LENGTH_SHORT).show());
     }
 }
+
 
 

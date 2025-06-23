@@ -12,6 +12,7 @@ import com.bumptech.glide.Glide;
 import com.cloudinary.android.MediaManager;
 import com.cloudinary.android.callback.ErrorInfo;
 import com.cloudinary.android.callback.UploadCallback;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.*;
@@ -20,10 +21,11 @@ public class LabTechnicianDashboardActivity extends AppCompatActivity {
 
     private EditText etPatientId, etReportTitle;
     private ImageView ivReportPreview;
-    private Button btnChooseImage, btnUploadReport;
+    private Button btnChooseImage, btnUploadReport, btnLogout;
     private Uri imageUri;
 
     private FirebaseFirestore db;
+    private FirebaseAuth auth;
     private static final int PICK_IMAGE_REQUEST = 1;
 
     @Override
@@ -32,14 +34,14 @@ public class LabTechnicianDashboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_lab_technician_dashboard);
 
         db = FirebaseFirestore.getInstance();
+        auth = FirebaseAuth.getInstance();
 
         // Initialize Cloudinary - use try-catch approach
         try {
             MediaManager.get();
         } catch (IllegalStateException e) {
-            // MediaManager not initialized, so initialize it
             Map<String, String> config = new HashMap<>();
-            config.put("cloud_name", "dhooyk69h");  // Your cloud name
+            config.put("cloud_name", "dhooyk69h");  // Your Cloudinary cloud name
             MediaManager.init(this, config);
         }
 
@@ -48,6 +50,7 @@ public class LabTechnicianDashboardActivity extends AppCompatActivity {
         ivReportPreview = findViewById(R.id.ivReportPreview);
         btnChooseImage = findViewById(R.id.btnChooseImage);
         btnUploadReport = findViewById(R.id.btnUploadReport);
+        btnLogout = findViewById(R.id.btnLogout); // New logout button
 
         btnChooseImage.setOnClickListener(v -> openImagePicker());
 
@@ -61,6 +64,13 @@ public class LabTechnicianDashboardActivity extends AppCompatActivity {
             }
 
             uploadLabReport(uid, title, imageUri);
+        });
+
+        btnLogout.setOnClickListener(v -> {
+            auth.signOut();
+            Toast.makeText(this, "Logged out", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
         });
     }
 
@@ -130,6 +140,7 @@ public class LabTechnicianDashboardActivity extends AppCompatActivity {
                 .dispatch();
     }
 }
+
 
 
 

@@ -2,27 +2,27 @@ package com.example.nirogya;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import java.util.Locale;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.*;
-
 
 import java.util.*;
 
 public class PatientDashboardActivity extends AppCompatActivity {
 
     FirebaseFirestore db;
-
     FirebaseAuth mAuth;
     String uid;
 
-    Button btnAddVitals, btnBookAppointment;
+    Button btnAddVitals, btnBookAppointment, btnLogout;
     RecyclerView rvVitals, rvMedicalHistory, rvDoctorVitals, rvLabReports;
 
     @Override
@@ -30,22 +30,31 @@ public class PatientDashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_patient_dashboard);
 
-        // Firebase setup
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
+
         if (mAuth.getCurrentUser() != null) {
             uid = mAuth.getCurrentUser().getUid();
         } else {
             Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
-            finish(); // or redirect to LoginActivity if preferred
+            finish();
             return;
         }
 
-
-        // UI setup
+        // Initialize buttons
         btnAddVitals = findViewById(R.id.btnAddVitals);
         btnBookAppointment = findViewById(R.id.btnBookAppointment);
+        btnLogout = findViewById(R.id.btnLogout);
 
+        // Set logout listener
+        btnLogout.setOnClickListener(v -> {
+            mAuth.signOut();
+            Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(PatientDashboardActivity.this, MainActivity.class));
+            finish();
+        });
+
+        // Initialize RecyclerViews
         rvVitals = findViewById(R.id.rvVitals);
         rvMedicalHistory = findViewById(R.id.rvMedicalHistory);
         rvDoctorVitals = findViewById(R.id.rvDoctorVitals);
@@ -60,11 +69,11 @@ public class PatientDashboardActivity extends AppCompatActivity {
         btnAddVitals.setOnClickListener(v -> addVitals());
         btnBookAppointment.setOnClickListener(v -> openAppointmentDialog());
 
-        // Load data
+        // Load Data
         loadVitals();
         loadMedicalHistory();
         loadDoctorVitals();
-        loadLabReports(); // now from Realtime DB
+        loadLabReports();
     }
 
     private void addVitals() {
@@ -138,7 +147,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
                         vitals.add(new Vital("Oxygen", oxygen, R.drawable.ic_oxygen));
                         vitals.add(new Vital("Temperature", temp, R.drawable.ic_temperature));
                         vitals.add(new Vital("Heart Rate", hr, R.drawable.ic_heart_rate));
-                        break; // only show latest
+                        break; // only latest vitals
                     }
                     VitalsAdapter adapter = new VitalsAdapter(vitals);
                     rvVitals.setAdapter(adapter);
@@ -182,8 +191,8 @@ public class PatientDashboardActivity extends AppCompatActivity {
                     rvLabReports.setAdapter(adapter);
                 });
     }
-
 }
+
 
 
 
