@@ -41,7 +41,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item,
-                new String[]{"Select role", "patient", "doctor", "lab technician"});
+                new String[]{"Select role", "patient", "doctor", "lab_technician"});
         roleSpinner.setAdapter(adapter);
 
         roleSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -136,7 +136,18 @@ public class RegisterActivity extends AppCompatActivity {
         db.collection("users").document(uid).set(userData)
                 .addOnSuccessListener(unused -> {
                     Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(this, PatientDashboardActivity.class));
+
+                    String role = (String) userData.get("role");
+                    Intent intent;
+                    if ("doctor".equals(role)) {
+                        intent = new Intent(this, DoctorDashboardActivity.class);
+                    } else if ("lab_technician".equals(role)) {
+                        intent = new Intent(this, LabTechnicianDashboardActivity.class);
+                    } else {
+                        intent = new Intent(this, PatientDashboardActivity.class);
+                    }
+
+                    startActivity(intent);
                     finish();
                 })
                 .addOnFailureListener(e ->
