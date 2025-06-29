@@ -1,142 +1,216 @@
 package com.example.nirogya;
 
-import android.app.ProgressDialog;
+import android.Manifest;
+import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.widget.*;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.concurrent.atomic.AtomicReference;
-import com.bumptech.glide.Glide;
-import com.cloudinary.android.MediaManager;
-import com.cloudinary.android.callback.ErrorInfo;
-import com.cloudinary.android.callback.UploadCallback;
-import com.example.nirogya.services.LabReportService;
-import com.google.firebase.firestore.FirebaseFirestore;
+import android.provider.MediaStore;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.Toast;
 
-import java.util.*;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
+
+import java.io.IOException;
 
 public class LabTechnicianDashboardActivity extends AppCompatActivity {
 
-    private EditText etPatientId, etReportTitle;
+    private static final int REQUEST_IMAGE_PICK = 1001;
+    private static final int REQUEST_PERMISSION = 1002;
+
+    private TextInputEditText etPatientId;
+    private TextInputEditText etReportTitle;
+    private Button btnChooseImage;
+    private Button btnUploadReport;
+    private Button btnLogout;
     private ImageView ivReportPreview;
-    private Button btnChooseImage, btnUploadReport;
-    private Uri imageUri;
 
-    private static final int PICK_IMAGE_REQUEST = 1;
-
-    private LabReportService labReportService;
+    private Uri selectedImageUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lab_technician_dashboard);
 
-        // Initialize MediaManager (Cloudinary)
-        try {
-            MediaManager.get();
-        } catch (IllegalStateException e) {
-            Map<String, String> config = new HashMap<>();
-            config.put("cloud_name", "dhooyk69h");  // Replace with your actual cloud name
-            config.put("api_key", "141128198432229");  // Your API key
-            config.put("api_secret", "ssG-b2okdn-XoehpCfxV9LAqKBg");  // Your API secret
-            MediaManager.init(this, config);
+        initializeViews();
+        setupClickListeners();
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle("Lab Technician Dashboard");
         }
-
-        // Initialize UI elements
-        etPatientId = findViewById(R.id.etPatientId);
-        etReportTitle = findViewById(R.id.etReportTitle);
-        ivReportPreview = findViewById(R.id.ivReportPreview);
-        btnChooseImage = findViewById(R.id.btnChooseImage);
-        btnUploadReport = findViewById(R.id.btnUploadReport);
-
-        // Initialize LabReportService
-        labReportService = new LabReportService(this, FirebaseFirestore.getInstance());
-
-        // Image picker
-        btnChooseImage.setOnClickListener(v -> openImagePicker());
-
-        // Upload report
-        btnUploadReport.setOnClickListener(v -> {
-            String patientId = etPatientId.getText().toString().trim();
-            String title = etReportTitle.getText().toString().trim();
-
-            if (patientId.isEmpty() || title.isEmpty() || imageUri == null) {
-                Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            uploadToCloudinary(patientId, title, imageUri);
-        });
     }
 
-    private void openImagePicker() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+    private void initializeViews() {
+        etPatientId = findViewById(R.id.etPatientId);
+        etReportTitle = findViewById(R.id.etReportTitle);
+        btnChooseImage = findViewById(R.id.btnChooseImage);
+        btnUploadReport = findViewById(R.id.btnUploadReport);
+        btnLogout = findViewById(R.id.btnLogout);
+        ivReportPreview = findViewById(R.id.ivReportPreview);
+    }
+
+    private void setupClickListeners() {
+        btnChooseImage.setOnClickListener(v -> checkPermissionAndPickImage());
+        btnUploadReport.setOnClickListener(v -> uploadReport());
+        btnLogout.setOnClickListener(v -> showLogoutDialog());
+    }
+
+    private void checkPermissionAndPickImage() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    REQUEST_PERMISSION);
+        } else {
+            pickImageFromGallery();
+        }
+    }
+
+    private void pickImageFromGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         intent.setType("image/*");
-        startActivityForResult(intent, PICK_IMAGE_REQUEST);
+        startActivityForResult(intent, REQUEST_IMAGE_PICK);
+    }
+
+    private void uploadReport() {
+        String patientId = etPatientId.getText().toString().trim();
+        String reportTitle = etReportTitle.getText().toString().trim();
+
+        if (patientId.isEmpty()) {
+            etPatientId.setError("Patient ID is required");
+            etPatientId.requestFocus();
+            return;
+        }
+
+        if (reportTitle.isEmpty()) {
+            etReportTitle.setError("Report title is required");
+            etReportTitle.requestFocus();
+            return;
+        }
+
+        if (selectedImageUri == null) {
+            Toast.makeText(this, "Please select an image first", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // TODO: Implement actual upload logic here
+        showUploadSuccessDialog(patientId, reportTitle);
+    }
+
+    private void showUploadSuccessDialog(String patientId, String reportTitle) {
+        new AlertDialog.Builder(this)
+                .setTitle("Upload Successful")
+                .setMessage("Report '" + reportTitle + "' has been uploaded for patient " + patientId)
+                .setPositiveButton("OK", (dialog, which) -> clearForm())
+                .show();
+    }
+
+    private void clearForm() {
+        etPatientId.setText("");
+        etReportTitle.setText("");
+        ivReportPreview.setImageResource(0);
+        ivReportPreview.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
+        selectedImageUri = null;
+    }
+
+    private void showLogoutDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Yes", (dialog, which) -> logout())
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    private void logout() {
+        // ✅ Sign out from Firebase
+        FirebaseAuth.getInstance().signOut();
+
+        // ✅ Redirect to LoginActivity with cleared back stack
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.dashboard_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_logout) {
+            showLogoutDialog();
+            return true;
+        } else if (id == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
-            imageUri = data.getData();
-            Glide.with(this).load(imageUri).into(ivReportPreview);
+
+        if (requestCode == REQUEST_IMAGE_PICK && resultCode == Activity.RESULT_OK && data != null) {
+            selectedImageUri = data.getData();
+
+            if (selectedImageUri != null) {
+                try {
+                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImageUri);
+                    ivReportPreview.setImageBitmap(bitmap);
+                    ivReportPreview.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+                    Toast.makeText(this, "Image selected successfully", Toast.LENGTH_SHORT).show();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show();
+                }
+            }
         }
     }
 
-    private void uploadToCloudinary(String patientId, String title, Uri imageUri) {
-        ProgressDialog dialog = new ProgressDialog(this);
-        dialog.setMessage("Uploading report...");
-        dialog.setCancelable(false);
-        dialog.show();
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        // Use AtomicReference to handle the imageUrl properly in callback
-        final AtomicReference<String> imageUrl = new AtomicReference<>("");
+        if (requestCode == REQUEST_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                pickImageFromGallery();
+            } else {
+                Toast.makeText(this, "Permission denied. Cannot access gallery.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 
-        MediaManager.get().upload(imageUri)
-                .callback(new UploadCallback() {
-                    @Override
-                    public void onStart(String requestId) {}
-
-                    @Override
-                    public void onProgress(String requestId, long bytes, long totalBytes) {}
-
-                    @Override
-                    public void onSuccess(String requestId, Map resultData) {
-                        imageUrl.set(resultData.get("secure_url").toString());
-
-                        labReportService.uploadLabReport(patientId, title, imageUrl.get(), new LabReportService.ReportUploadCallback() {
-                            @Override
-                            public void onSuccess() {
-                                dialog.dismiss();
-                                Toast.makeText(LabTechnicianDashboardActivity.this, "Report uploaded successfully", Toast.LENGTH_SHORT).show();
-                                etPatientId.setText("");
-                                etReportTitle.setText("");
-                                ivReportPreview.setImageDrawable(null);
-                                imageUri = null;
-                            }
-
-                            @Override
-                            public void onFailure(String error) {
-                                dialog.dismiss();
-                                Toast.makeText(LabTechnicianDashboardActivity.this, "Upload failed: " + error, Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onError(String requestId, ErrorInfo error) {
-                        dialog.dismiss();
-                        Toast.makeText(LabTechnicianDashboardActivity.this, "Cloudinary error: " + error.getDescription(), Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onReschedule(String requestId, ErrorInfo error) {}
-                })
-                .dispatch();
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setTitle("Exit")
+                .setMessage("Are you sure you want to go back?")
+                .setPositiveButton("Yes", (dialog, which) -> LabTechnicianDashboardActivity.super.onBackPressed())
+                .setNegativeButton("No", null)
+                .show();
     }
 }

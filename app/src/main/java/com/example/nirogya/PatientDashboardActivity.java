@@ -2,6 +2,7 @@ package com.example.nirogya;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
@@ -21,8 +22,6 @@ import com.example.nirogya.VitalsAdapter;
 import com.example.nirogya.services.AppointmentService;
 import com.example.nirogya.services.LabReportService;
 
-
-
 import java.util.*;
 
 public class PatientDashboardActivity extends AppCompatActivity {
@@ -38,7 +37,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
 
     MedicalHistoryService medicalHistoryService;
     MedicalHistoryAdapter medicalHistoryAdapter;
-    Button btnAddVitals, btnBookAppointment;
+    Button btnAddVitals, btnBookAppointment, btnLogout;
     Button btnAddMedicalHistory;
 
     RecyclerView rvVitals, rvMedicalHistory, rvDoctorVitals, rvLabReports;
@@ -66,11 +65,11 @@ public class PatientDashboardActivity extends AppCompatActivity {
         appointmentService = new AppointmentService(this, db, uid);
         labReportService = new LabReportService(this, FirebaseFirestore.getInstance());
 
-
         // UI setup
         btnAddVitals = findViewById(R.id.btnAddVitals);
         btnAddMedicalHistory = findViewById(R.id.btnAddMedicalHistory);
         btnBookAppointment = findViewById(R.id.btnBookAppointment);
+        btnLogout = findViewById(R.id.btnLogout); // Add this button to your layout
 
         rvVitals = findViewById(R.id.rvVitals);
         rvMedicalHistory = findViewById(R.id.rvMedicalHistory);
@@ -91,9 +90,16 @@ public class PatientDashboardActivity extends AppCompatActivity {
         // Add medical history
         btnAddMedicalHistory.setOnClickListener(v -> MedicalHistoryInputDialog.show(this, (disease, duration, remarks) -> medicalHistoryService.addMedicalHistory(disease, duration, remarks)));
 
-
         // Button Listeners
         btnBookAppointment.setOnClickListener(v -> openAppointmentDialog());
+
+        // Logout functionality
+        btnLogout.setOnClickListener(v -> {
+            mAuth.signOut();
+            Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+        });
 
         // Load data
         loadVitals();
@@ -216,7 +222,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
                 });
     }
 
-
     private void loadLabReports() {
         labReportService.fetchLabReports(uid, new LabReportService.LabReportCallback() {
             @Override
@@ -231,8 +236,6 @@ public class PatientDashboardActivity extends AppCompatActivity {
             }
         });
     }
-
-
 }
 
 

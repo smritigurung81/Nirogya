@@ -4,10 +4,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginActivity extends AppCompatActivity {
+
     EditText etEmail, etPassword;
     Button btnLogin;
     TextView tvRegister;
@@ -18,11 +21,19 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        mAuth = FirebaseAuth.getInstance();
+
+        // ✅ If user already logged in, skip to MainActivity
+        if (mAuth.getCurrentUser() != null) {
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+            return;
+        }
+
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
         tvRegister = findViewById(R.id.tvRegister);
-        mAuth = FirebaseAuth.getInstance();
 
         btnLogin.setOnClickListener(v -> {
             String email = etEmail.getText().toString().trim();
@@ -49,5 +60,6 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 }
+
 
 

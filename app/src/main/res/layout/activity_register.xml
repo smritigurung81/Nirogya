@@ -38,7 +38,8 @@
             android:background="@drawable/edittext_background"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="12dp"
+            android:inputType="textCapWords" />
 
         <EditText
             android:id="@+id/etLastName"
@@ -47,7 +48,8 @@
             android:background="@drawable/edittext_background"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="12dp"
+            android:inputType="textCapWords" />
 
         <EditText
             android:id="@+id/etEmail"
@@ -61,7 +63,7 @@
 
         <EditText
             android:id="@+id/etPassword"
-            android:hint="Password"
+            android:hint="Password (min 6 characters)"
             android:inputType="textPassword"
             android:padding="12dp"
             android:background="@drawable/edittext_background"
@@ -69,13 +71,25 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp" />
 
+        <!-- Role Selection -->
+        <TextView
+            android:text="Select Role:"
+            android:textSize="16sp"
+            android:textColor="#212121"
+            android:textStyle="bold"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp" />
+
         <Spinner
             android:id="@+id/roleSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/edittext_background"
+            android:padding="12dp" />
 
-        <!-- Doctor-specific -->
+        <!-- Doctor-specific fields -->
         <LinearLayout
             android:id="@+id/layoutDoctor"
             android:orientation="vertical"
@@ -84,16 +98,26 @@
             android:visibility="gone"
             android:layout_marginBottom="12dp">
 
+            <TextView
+                android:text="Doctor Information:"
+                android:textSize="16sp"
+                android:textColor="#212121"
+                android:textStyle="bold"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp" />
+
             <EditText
                 android:id="@+id/etNMC"
-                android:hint="NMC Number"
+                android:hint="NMC Number (Required)"
                 android:padding="12dp"
                 android:background="@drawable/edittext_background"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:inputType="textCapCharacters" />
         </LinearLayout>
 
-        <!-- Patient-specific -->
+        <!-- Patient-specific fields -->
         <LinearLayout
             android:id="@+id/layoutPatient"
             android:orientation="vertical"
@@ -102,26 +126,83 @@
             android:visibility="gone"
             android:layout_marginBottom="12dp">
 
+            <TextView
+                android:text="Patient Information:"
+                android:textSize="16sp"
+                android:textColor="#212121"
+                android:textStyle="bold"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp" />
+
             <EditText
                 android:id="@+id/etKnownDoctorNMC"
-                android:hint="Known Doctor NMC (optional)"
+                android:hint="Known Doctor NMC (Optional)"
                 android:padding="12dp"
                 android:background="@drawable/edittext_background"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:inputType="textCapCharacters" />
+
+            <TextView
+                android:text="Link with your doctor for better care coordination"
+                android:textSize="12sp"
+                android:textColor="#666666"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <!-- Lab Technician-specific fields (Optional - can be added later) -->
+        <LinearLayout
+            android:id="@+id/layoutLabTechnician"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:text="Lab Technician Information:"
+                android:textSize="16sp"
+                android:textColor="#212121"
+                android:textStyle="bold"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/etLabLicense"
+                android:hint="Lab License Number (Optional)"
+                android:padding="12dp"
+                android:background="@drawable/edittext_background"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapCharacters" />
+
+            <TextView
+                android:text="Enter your professional license number if available"
+                android:textSize="12sp"
+                android:textColor="#666666"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp" />
         </LinearLayout>
 
         <!-- Register Button -->
         <Button
             android:id="@+id/btnRegister"
-            android:text="Register"
+            android:text="Create Account"
             android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
             android:backgroundTint="#4CAF50"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="14dp"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp"
+            android:elevation="2dp" />
 
         <!-- Login Link -->
         <TextView
@@ -129,14 +210,15 @@
             android:text="Already have an account? Login"
             android:textColor="#4CAF50"
             android:textStyle="bold"
+            android:textSize="14sp"
             android:gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="24dp"
+            android:padding="8dp" />
 
     </LinearLayout>
 </ScrollView>
-
 
 
 
