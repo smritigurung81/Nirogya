@@ -1,4 +1,4 @@
-package com.example.nirogya;
+package com.example.nirogya.models;
 
 public class Appointment {
     private String id;

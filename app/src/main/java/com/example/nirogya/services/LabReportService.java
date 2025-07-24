@@ -1,69 +1,80 @@
 package com.example.nirogya.services;
 
 import android.content.Context;
-
-import com.example.nirogya.LabReport;
-import com.google.firebase.firestore.*;
-
-import java.util.*;
+import com.example.nirogya.models.LabReport;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LabReportService {
 
-    private final FirebaseFirestore db;
-    private final Context context;
+    private Context context;
+    private FirebaseFirestore firestore;
 
-    public LabReportService(Context context, FirebaseFirestore db) {
-        this.context = context;
-        this.db = db;
-    }
-
-    // ----------- Upload Functionality (Lab Technician) ------------ //
-
-    public interface ReportUploadCallback {
-        void onSuccess();
-        void onFailure(String error);
-    }
-
-    public void uploadLabReport(String patientId, String title, String imageUrl, ReportUploadCallback callback) {
-        Map<String, Object> reportData = new HashMap<>();
-        reportData.put("title", title);
-        reportData.put("imageUrl", imageUrl);
-        reportData.put("date", new Date());
-
-        db.collection("users")
-                .document(patientId)
-                .collection("lab_reports")
-                .document(UUID.randomUUID().toString())
-                .set(reportData)
-                .addOnSuccessListener(unused -> callback.onSuccess())
-                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
-    }
-
-    // ----------- Fetching Functionality (Patient, Doctor Viewer) ------------ //
-
-    public interface LabReportCallback {
+    public interface OnReportsFetchedListener {
         void onReportsFetched(List<LabReport> reports);
         void onError(String error);
     }
 
-    public void fetchLabReports(String patientId, LabReportCallback callback) {
-        db.collection("users")
-                .document(patientId)
-                .collection("lab_reports")
-                .orderBy("date", Query.Direction.DESCENDING)
-                .addSnapshotListener((value, error) -> {
-                    if (error != null || value == null) {
-                        callback.onError("Failed to load lab reports.");
-                        return;
-                    }
+    public LabReportService(Context context, FirebaseFirestore firestore) {
+        this.context = context;
+        this.firestore = firestore;
+    }
 
-                    List<LabReport> reportList = new ArrayList<>();
-                    for (DocumentSnapshot doc : value.getDocuments()) {
-                        LabReport report = doc.toObject(LabReport.class);
-                        reportList.add(report);
-                    }
+    public void fetchLabReports(String patientId, OnReportsFetchedListener listener) {
+        if (patientId == null || patientId.isEmpty()) {
+            // Fetch all lab reports
+            firestore.collection("lab_reports")
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            List<LabReport> reports = new ArrayList<>();
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                LabReport report = document.toObject(LabReport.class);
+                                report.setId(document.getId());
+                                reports.add(report);
+                            }
+                            listener.onReportsFetched(reports);
+                        } else {
+                            listener.onError("Failed to fetch lab reports: " + task.getException().getMessage());
+                        }
+                    });
+        } else {
+            // Fetch lab reports for specific patient
+            firestore.collection("lab_reports")
+                    .whereEqualTo("patientId", patientId)
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            List<LabReport> reports = new ArrayList<>();
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                LabReport report = document.toObject(LabReport.class);
+                                report.setId(document.getId());
+                                reports.add(report);
+                            }
+                            listener.onReportsFetched(reports);
+                        } else {
+                            listener.onError("Failed to fetch lab reports: " + task.getException().getMessage());
+                        }
+                    });
+        }
+    }
 
-                    callback.onReportsFetched(reportList);
+    public void addLabReport(LabReport report, OnReportAddedListener listener) {
+        firestore.collection("lab_reports")
+                .add(report)
+                .addOnSuccessListener(documentReference -> {
+                    report.setId(documentReference.getId());
+                    listener.onReportAdded(report);
+                })
+                .addOnFailureListener(e -> {
+                    listener.onError("Failed to add lab report: " + e.getMessage());
                 });
+    }
+
+    public interface OnReportAddedListener {
+        void onReportAdded(LabReport report);
+        void onError(String error);
     }
 }

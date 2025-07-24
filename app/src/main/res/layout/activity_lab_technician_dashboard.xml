@@ -1,184 +1,226 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#F5F8FA">
+    android:background="#F4F6F8"
+    android:padding="16dp"
+    android:fillViewport="true">
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:padding="20dp">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
 
-        <LinearLayout
+        <!-- App Logo -->
+        <ImageView
+            android:id="@+id/imgLogo"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="12dp"
+            android:src="@drawable/logo"
+            android:contentDescription="App Logo" />
+
+        <!-- Welcome Message -->
+        <TextView
+            android:id="@+id/tvWelcome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome Lab Technician"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#2E3A59"
+            android:layout_marginTop="8dp" />
+
+        <!-- Card Container -->
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginHorizontal="8dp"
+            android:elevation="6dp"
+            android:padding="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp">
 
-            <!-- App Logo -->
-            <ImageView
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:layout_gravity="center"
-                android:layout_marginBottom="16dp"
-                android:src="@drawable/logo"
-                android:contentDescription="App Logo"
-                android:scaleType="centerInside" />
-
-            <!-- Welcome Message -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Welcome, Lab Technician"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="#2C3E50"
-                android:layout_gravity="center"
-                android:layout_marginBottom="8dp" />
-
-            <!-- Subtitle -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Upload Patient Lab Reports"
-                android:textSize="16sp"
-                android:textColor="#7F8C8D"
-                android:layout_gravity="center"
-                android:layout_marginBottom="32dp" />
-
-            <!-- Form Card -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/card_background"
-                android:padding="20dp"
-                android:layout_marginBottom="24dp"
-                android:elevation="4dp">
+                android:orientation="vertical">
 
-                <!-- Patient UID Input -->
-                <com.google.android.material.textfield.TextInputLayout
+                <!-- Form Fields -->
+                <EditText
+                    android:id="@+id/etPatientId"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
                     android:hint="Patient UID"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    android:inputType="text"
+                    android:backgroundTint="#607D8B"
+                    android:drawableStart="@android:drawable/ic_menu_myplaces" />
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etPatientId"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="text"
-                        android:maxLines="1" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Report Title Input -->
-                <com.google.android.material.textfield.TextInputLayout
+                <EditText
+                    android:id="@+id/etReportTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="20dp"
                     android:hint="Report Title"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    android:inputType="text"
+                    android:backgroundTint="#607D8B"
+                    android:layout_marginTop="10dp" />
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etReportTitle"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="text"
-                        android:maxLines="1" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Choose Image Button -->
-                <Button
-                    android:id="@+id/btnChooseImage"
+                <EditText
+                    android:id="@+id/etTechnicianName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Choose Image"
-                    android:textSize="16sp"
-                    android:backgroundTint="#1976D2"
-                    android:textColor="@android:color/white"
-                    android:padding="14dp"
-                    android:layout_marginBottom="16dp" />
+                    android:hint="Technician Name"
+                    android:inputType="textPersonName"
+                    android:backgroundTint="#607D8B"
+                    android:layout_marginTop="10dp" />
 
-                <!-- Image Preview -->
-                <ImageView
-                    android:id="@+id/ivReportPreview"
+                <EditText
+                    android:id="@+id/etTechnicianId"
                     android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:scaleType="centerCrop"
-                    android:background="#DDDDDD"
-                    android:layout_marginBottom="16dp"
-                    android:contentDescription="Report Preview" />
+                    android:layout_height="wrap_content"
+                    android:hint="Technician ID"
+                    android:inputType="text"
+                    android:backgroundTint="#607D8B"
+                    android:layout_marginTop="10dp" />
 
-                <!-- Upload Report Button -->
+                <!-- Spinner -->
+                <Spinner
+                    android:id="@+id/spinnerReportType"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp" />
+
+                <!-- CBC Fields -->
+                <LinearLayout
+                    android:id="@+id/layoutCbcForm"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:paddingTop="10dp">
+
+                    <EditText
+                        android:id="@+id/etHemoglobin"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Hemoglobin (g/dL)"
+                        android:inputType="numberDecimal" />
+
+                    <EditText
+                        android:id="@+id/etWBC"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="WBC (x10^9/L)"
+                        android:inputType="numberDecimal"
+                        android:layout_marginTop="6dp" />
+
+                    <EditText
+                        android:id="@+id/etPlatelets"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Platelets (x10^9/L)"
+                        android:inputType="numberDecimal"
+                        android:layout_marginTop="6dp" />
+                </LinearLayout>
+
+                <!-- Lipid Profile -->
+                <LinearLayout
+                    android:id="@+id/layoutLipidForm"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:paddingTop="10dp">
+
+                    <EditText
+                        android:id="@+id/etHDL"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="HDL (mg/dL)"
+                        android:inputType="numberDecimal" />
+
+                    <EditText
+                        android:id="@+id/etLDL"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="LDL (mg/dL)"
+                        android:inputType="numberDecimal"
+                        android:layout_marginTop="6dp" />
+
+                    <EditText
+                        android:id="@+id/etTriglycerides"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Triglycerides (mg/dL)"
+                        android:inputType="numberDecimal"
+                        android:layout_marginTop="6dp" />
+                </LinearLayout>
+
+                <!-- Blood Sugar -->
+                <LinearLayout
+                    android:id="@+id/layoutSugarForm"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:paddingTop="10dp">
+
+                    <EditText
+                        android:id="@+id/etFasting"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Fasting Sugar (mg/dL)"
+                        android:inputType="numberDecimal" />
+
+                    <EditText
+                        android:id="@+id/etPost"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Postprandial Sugar (mg/dL)"
+                        android:inputType="numberDecimal"
+                        android:layout_marginTop="6dp" />
+
+                    <EditText
+                        android:id="@+id/etHbA1c"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="HbA1c (%)"
+                        android:inputType="numberDecimal"
+                        android:layout_marginTop="6dp" />
+                </LinearLayout>
+
+                <!-- Buttons -->
                 <Button
                     android:id="@+id/btnUploadReport"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Upload Report"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:backgroundTint="#388E3C"
-                    android:textColor="@android:color/white"
-                    android:padding="14dp" />
+                    android:layout_marginTop="20dp"
+                    android:backgroundTint="#4CAF50"
+                    android:textColor="#FFFFFF" />
 
-            </LinearLayout>
-
-            <!-- Instructions Card -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="#E3F2FD">
-
-                <LinearLayout
+                <Button
+                    android:id="@+id/btnViewReports"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:text="View My Reports"
+                    android:layout_marginTop="10dp"
+                    android:backgroundTint="#2196F3"
+                    android:textColor="#FFFFFF" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Instructions:"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="#1976D2"
-                        android:layout_marginBottom="8dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="• Enter the patient's unique ID\n• Provide a descriptive title for the report\n• Select a clear image of the lab report\n• Tap upload to save to the patient's record"
-                        android:textSize="14sp"
-                        android:textColor="#424242"
-                        android:lineSpacingExtra="2dp" />
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-        </LinearLayout>
-    </ScrollView>
-
-    <!-- Logout Button anchored at the bottom -->
-    <Button
-        android:id="@+id/btnLogout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Logout"
-        android:textStyle="bold"
-        android:backgroundTint="#F44336"
-        android:textColor="@android:color/white"
-        android:padding="14dp"
-        android:layout_margin="12dp" />
-
-</LinearLayout>
-
-
+                <Button
+                    android:id="@+id/btnLogout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Logout"
+                    android:layout_marginTop="10dp"
+                    android:backgroundTint="#F44336"
+                    android:textColor="#FFFFFF" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+    </LinearLayout>
+</ScrollView>

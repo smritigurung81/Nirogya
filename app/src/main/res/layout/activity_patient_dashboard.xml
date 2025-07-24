@@ -2,175 +2,106 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F8FA">
+    android:padding="16dp"
+    android:background="#F9F9F9">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
+        android:orientation="vertical">
 
-        <!-- App Logo on Top -->
-        <ImageView
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_gravity="center"
-            android:src="@drawable/logo"
-            android:contentDescription="App Logo"
-            android:layout_marginBottom="12dp" />
-
-        <!-- Welcome Message -->
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Welcome, Patient"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="#333"
-            android:layout_gravity="center"
-            android:layout_marginBottom="24dp" />
-
-        <!-- Vitals Section -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Your Vitals"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="#333"
-            android:layout_marginBottom="12dp" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvVitals"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:nestedScrollingEnabled="false"
-            android:background="@android:color/white"
-            android:elevation="2dp"
-            android:padding="8dp"
-            android:layout_marginBottom="12dp" />
+            android:text="Welcome, Patient"
+            android:textStyle="bold"
+            android:textSize="22sp"
+            android:paddingBottom="12dp"
+            android:textColor="#333" />
 
-        <!-- Add Vitals Button -->
         <Button
             android:id="@+id/btnAddVitals"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="+ Add Vitals"
-            android:backgroundTint="#4CAF50"
-            android:textColor="@android:color/white"
-            android:layout_marginBottom="24dp"
-            android:elevation="4dp"
-            android:padding="14dp"
-            android:textStyle="bold" />
+            android:text="Add Vitals and Notes" />
 
-        <!-- Medical History Section -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Medical History (Last 30 Days)"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="#333"
-            android:layout_marginBottom="12dp" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvMedicalHistory"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:nestedScrollingEnabled="false"
-            android:background="@android:color/white"
-            android:elevation="2dp"
-            android:padding="8dp"
-            android:layout_marginBottom="12dp" />
-
-        <!-- Add Medical History Button -->
-        <Button
-            android:id="@+id/btnAddMedicalHistory"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="+ Add Medical History"
-            android:backgroundTint="#4CAF50"
-            android:textColor="@android:color/white"
-            android:layout_marginBottom="24dp"
-            android:elevation="4dp"
-            android:padding="14dp"
-            android:textStyle="bold" />
-
-        <!-- Doctor's Vitals & Notes Section -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Doctor's Vitals and Notes"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="#333"
-            android:layout_marginBottom="12dp" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvDoctorVitals"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:nestedScrollingEnabled="false"
-            android:background="@android:color/white"
-            android:elevation="2dp"
-            android:padding="8dp"
-            android:layout_marginBottom="24dp" />
-
-        <!-- Lab Reports Section -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Lab Reports"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="#333"
-            android:layout_marginBottom="12dp" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvLabReports"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:nestedScrollingEnabled="false"
-            android:background="@android:color/white"
-            android:elevation="2dp"
-            android:padding="8dp"
-            android:layout_marginBottom="24dp" />
-
-        <!-- Book Appointment Button -->
         <Button
             android:id="@+id/btnBookAppointment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Book Appointment"
-            android:backgroundTint="#2196F3"
-            android:textColor="@android:color/white"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/tvReminder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Reminder: Upcoming Appointment!"
+            android:textColor="#D32F2F"
+            android:paddingTop="10dp"
             android:textStyle="bold"
-            android:elevation="4dp"
-            android:padding="14dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvTodayAppointmentsLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Today's Appointments"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:paddingTop="10dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvAppointmentsToday"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginBottom="16dp" />
 
-        <!-- Logout Button -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Your Vitals"
+            android:textStyle="bold"
+            android:textSize="18sp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvVitals"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Doctor's Vitals and Notes"
+            android:textStyle="bold"
+            android:textSize="18sp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvDoctorVitals"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lab Reports"
+            android:textStyle="bold"
+            android:textSize="18sp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvLabReports"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
         <Button
             android:id="@+id/btnLogout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Logout"
-            android:backgroundTint="#F44336"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
-            android:elevation="4dp"
-            android:padding="14dp" />
-
+            android:textColor="#FFF"
+            android:backgroundTint="#D32F2F"
+            android:layout_marginTop="20dp" />
     </LinearLayout>
 </ScrollView>
-
-
-
-
-
-
-
-
-
-
-

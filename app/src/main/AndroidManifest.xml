@@ -15,9 +15,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Nirogya">
 
-        <!-- ✅ LoginActivity is now launcher -->
+        <!-- ✅ Splash screen / launcher -->
         <activity
-            android:name=".LoginActivity"
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,17 +25,18 @@
             </intent-filter>
         </activity>
 
-        <!-- Splash screen activity (no launcher) -->
-        <activity android:name=".MainActivity" android:exported="false" />
-
-        <!-- Other activities -->
+        <!-- ✅ Other app activities -->
+        <activity android:name=".LoginActivity" android:exported="false" />
         <activity android:name=".RegisterActivity" android:exported="false" />
         <activity android:name=".PatientDashboardActivity" android:exported="false" />
         <activity android:name=".DoctorDashboardActivity" android:exported="false" />
         <activity android:name=".LabTechnicianDashboardActivity" android:exported="false" />
         <activity android:name=".LabReportsViewerActivity" android:exported="false" />
         <activity android:name=".AppointmentManagerActivity" android:exported="false" />
+
+        <!-- ✅ ADDED: Fixes crash when opening View My Reports -->
+        <activity android:name=".MyReportsActivity" android:exported="false" />
+
     </application>
 
 </manifest>
-

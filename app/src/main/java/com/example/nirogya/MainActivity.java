@@ -9,7 +9,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.*;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -20,20 +20,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main); // Splash screen layout with logo
+        setContentView(R.layout.activity_main); // 👈 Your splash screen layout with logo
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            // ✅ Prevent redirect loop: check immediately
+            // 🔐 Not logged in? Send to login
             if (auth.getCurrentUser() == null) {
                 startActivity(new Intent(MainActivity.this, LoginActivity.class));
                 finish();
                 return;
             }
 
-            // ✅ Fetch user role
+            // 👤 Get role & redirect
             String uid = auth.getCurrentUser().getUid();
             db.collection("users").document(uid).get()
                     .addOnSuccessListener(doc -> {
@@ -84,6 +84,3 @@ public class MainActivity extends AppCompatActivity {
         }, SPLASH_DURATION);
     }
 }
-
-
-

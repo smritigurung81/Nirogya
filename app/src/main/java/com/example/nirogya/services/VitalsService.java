@@ -1,36 +1,48 @@
 package com.example.nirogya.services;
 
 import android.content.Context;
-import android.widget.Toast;
-import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import com.example.nirogya.models.Vital;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class VitalsService {
-    private final Context context;
-    private final FirebaseFirestore db;
-    private final String uid;
+    private Context context;
+    private FirebaseFirestore db;
 
-    public VitalsService(Context context, FirebaseFirestore db, String uid) {
+    public VitalsService(Context context, FirebaseFirestore db) {
         this.context = context;
         this.db = db;
-        this.uid = uid;
     }
 
-    public void addVitals(String pressure, String oxygen, String heartRate, String temperature) {
-        Map<String, Object> vitals = new HashMap<>();
-        vitals.put("pressure", pressure);
-        vitals.put("oxygen", oxygen);
-        vitals.put("heartRate", heartRate);
-        vitals.put("temperature", temperature);
-        vitals.put("date", new Date());
+    public interface OnVitalsFetchedListener {
+        void onVitalsFetched(List<Vital> vitals);
+        void onError(String errorMessage);
+    }
 
-        db.collection("users").document(uid)
-                .collection("vitals_user")
-                .add(vitals)
-                .addOnSuccessListener(doc -> Toast.makeText(context, "Vitals added", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(context, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    public void fetchVitalsForPatient(String patientId, OnVitalsFetchedListener listener) {
+        db.collection("vitals")
+                .whereEqualTo("patientId", patientId)
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        List<Vital> vitals = new ArrayList<>();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            try {
+                                Vital vital = document.toObject(Vital.class);
+                                vitals.add(vital);
+                            } catch (Exception e) {
+                                // Handle deserialization error gracefully
+                            }
+                        }
+                        listener.onVitalsFetched(vitals);
+                    } else {
+                        listener.onError("Failed to fetch vitals: " + task.getException().getMessage());
+                    }
+                });
     }
 }

@@ -2,10 +2,14 @@ package com.example.nirogya;
 
 import android.os.Bundle;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.nirogya.adapters.AppointmentAdapter;
+import com.example.nirogya.models.Appointment;
 import com.example.nirogya.services.AppointmentService;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -15,71 +19,44 @@ import java.util.List;
 
 public class AppointmentManagerActivity extends AppCompatActivity {
 
-    private FirebaseFirestore db;
-    private FirebaseAuth mAuth;
-    private String doctorUid;
-
     private RecyclerView rvAppointments;
-    private AppointmentAdapter adapter;
-    private List<Appointment> appointmentList;
-
+    private AppointmentAdapter appointmentAdapter;
     private AppointmentService appointmentService;
+    private List<Appointment> appointmentList;
+    private String doctorId;
+    private FirebaseFirestore db;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_appointment_manager);
 
-        // Firebase
+        doctorId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         db = FirebaseFirestore.getInstance();
-        mAuth = FirebaseAuth.getInstance();
-        doctorUid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
 
-        // Initialize appointment service
-        appointmentService = new AppointmentService(this, db, doctorUid);
+        // Initialize service
+        appointmentService = new AppointmentService(this, db, doctorId);
 
-        // RecyclerView setup
+        // Setup RecyclerView
         rvAppointments = findViewById(R.id.rvAppointments);
         rvAppointments.setLayoutManager(new LinearLayoutManager(this));
 
         appointmentList = new ArrayList<>();
+        appointmentAdapter = new AppointmentAdapter(appointmentList, true);
+        rvAppointments.setAdapter(appointmentAdapter);
 
-        // Pass `true` to show Accept/Decline buttons for doctor
-        adapter = new AppointmentAdapter(appointmentList, true, this::handleAppointmentAction);
-        rvAppointments.setAdapter(adapter);
-
-        loadAppointments();
+        // Load data
+        loadDoctorAppointments();
     }
 
-    private void loadAppointments() {
-        appointmentService.fetchDoctorAppointments(doctorUid, new AppointmentService.AppointmentFetchCallback() {
-            @Override
-            public void onAppointmentsFetched(List<Appointment> list) {
-                appointmentList.clear();
-                appointmentList.addAll(list);
-                adapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onError(String errorMessage) {
-                Toast.makeText(AppointmentManagerActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void handleAppointmentAction(Appointment appointment, boolean isAccepted) {
-        appointmentService.updateAppointmentStatus(appointment.getId(), isAccepted, new AppointmentService.AppointmentCallback() {
-            @Override
-            public void onSuccess() {
-                Toast.makeText(AppointmentManagerActivity.this,
-                        "Appointment " + (isAccepted ? "accepted" : "declined"), Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onFailure(String errorMessage) {
-                Toast.makeText(AppointmentManagerActivity.this,
-                        "Error: " + errorMessage, Toast.LENGTH_SHORT).show();
-            }
-        });
+    private void loadDoctorAppointments() {
+        appointmentService.fetchAppointmentsForDoctor(
+                appointments -> {
+                    appointmentList.clear();
+                    appointmentList.addAll(appointments);
+                    appointmentAdapter.notifyDataSetChanged();
+                },
+                e -> Toast.makeText(this, "Failed to fetch appointments: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+        );
     }
 }

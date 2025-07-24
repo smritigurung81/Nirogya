@@ -13,6 +13,7 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <!-- Patient Name -->
         <TextView
             android:id="@+id/tv_patient_name"
             android:layout_width="match_parent"
@@ -22,6 +23,7 @@
             android:textStyle="bold"
             android:textColor="@android:color/black" />
 
+        <!-- Doctor Name -->
         <TextView
             android:id="@+id/tv_doctor_name"
             android:layout_width="match_parent"
@@ -31,6 +33,7 @@
             android:textColor="@android:color/darker_gray"
             android:layout_marginTop="4dp" />
 
+        <!-- Date, Time, Status -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -59,21 +62,22 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Status"
+                android:text="Pending"
                 android:textSize="14sp"
                 android:gravity="end"
                 android:textStyle="bold"
                 android:textColor="@android:color/holo_orange_dark" />
-
         </LinearLayout>
 
-        <!-- Action buttons for pending appointments -->
+        <!-- Accept/Decline buttons -->
         <LinearLayout
+            android:id="@+id/layout_action_buttons"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_marginTop="12dp"
-            android:gravity="end">
+            android:gravity="end"
+            android:visibility="gone"> <!-- Make GONE by default -->
 
             <Button
                 android:id="@+id/btn_decline"
@@ -95,9 +99,7 @@
                 android:backgroundTint="@android:color/holo_green_light"
                 android:textColor="@android:color/white"
                 android:minWidth="80dp" />
-
         </LinearLayout>
 
     </LinearLayout>
-
 </androidx.cardview.widget.CardView>
