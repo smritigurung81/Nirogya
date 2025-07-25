@@ -1,34 +1,33 @@
 package com.example.nirogya;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.nirogya.adapters.LabReportAdapter;
-import com.example.nirogya.models.LabReport;
+import com.example.nirogya.adapters.VitalsAdapter;
+import com.example.nirogya.models.DoctorVitalsModel;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LabReportsViewerActivity extends AppCompatActivity {
+public class PatientHistoryActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
-    private LabReportAdapter adapter;
-    private List<LabReport> reportList;
+    private VitalsAdapter adapter;
+    private List<DoctorVitalsModel> historyList;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_lab_reports_viewer);
+        setContentView(R.layout.activity_patient_history);
 
-        recyclerView = findViewById(R.id.recyclerViewLabReports);
+        recyclerView = findViewById(R.id.recyclerViewHistory);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        reportList = new ArrayList<>();
-        adapter = new LabReportAdapter(this, reportList); // FIXED constructor usage
+        historyList = new ArrayList<>();
+        adapter = new VitalsAdapter(this, historyList);
         recyclerView.setAdapter(adapter);
 
         String patientId = getIntent().getStringExtra("patientId");
@@ -40,25 +39,25 @@ public class LabReportsViewerActivity extends AppCompatActivity {
         }
 
         FirebaseFirestore.getInstance()
-                .collection("lab_reports")
-                .whereEqualTo("patientId", patientId)
+                .collection("users")
+                .document(patientId)
+                .collection("doctor_vitals")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-                    List<LabReport> temp = new ArrayList<>();
+                    List<DoctorVitalsModel> temp = new ArrayList<>();
                     for (var doc : querySnapshot.getDocuments()) {
-                        LabReport report = doc.toObject(LabReport.class);
-                        if (report != null) {
-                            temp.add(report);
+                        DoctorVitalsModel model = doc.toObject(DoctorVitalsModel.class);
+                        if (model != null) {
+                            temp.add(model);
                         }
                     }
-                    reportList.clear();
-                    reportList.addAll(temp);
+                    historyList.clear();
+                    historyList.addAll(temp);
                     adapter.notifyDataSetChanged();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to load reports", Toast.LENGTH_SHORT).show();
-                    Log.e("LabReports", "Error: ", e);
+                    Toast.makeText(this, "Failed to load history", Toast.LENGTH_SHORT).show();
                 });
     }
 }

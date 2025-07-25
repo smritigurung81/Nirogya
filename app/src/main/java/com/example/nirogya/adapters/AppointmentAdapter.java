@@ -4,29 +4,26 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.nirogya.R;
 import com.example.nirogya.models.Appointment;
-
+import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.List;
 
 public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.ViewHolder> {
 
-    private List<Appointment> appointments;
-    private boolean showButtons;
+    private List<Appointment> appointmentList;
+    private final boolean showButtons;
 
-    public AppointmentAdapter(List<Appointment> appointments, boolean showButtons) {
-        this.appointments = appointments;
+    public AppointmentAdapter(List<Appointment> appointmentList, boolean showButtons) {
+        this.appointmentList = appointmentList;
         this.showButtons = showButtons;
     }
 
-    public void updateList(List<Appointment> list) {
-        this.appointments = list;
+    public void updateList(List<Appointment> newList) {
+        this.appointmentList = newList;
         notifyDataSetChanged();
     }
 
@@ -40,42 +37,49 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull AppointmentAdapter.ViewHolder holder, int position) {
-        Appointment appointment = appointments.get(position);
-
+        Appointment appointment = appointmentList.get(position);
         holder.tvPatientName.setText("Patient: " + appointment.getPatientName());
-        holder.tvDoctorName.setText("Doctor: " + appointment.getDoctorName());
-        holder.tvDate.setText(appointment.getDate());
-        holder.tvTime.setText(appointment.getTime());
-        holder.tvStatus.setText(appointment.getStatus());
+        holder.tvDate.setText("Date: " + appointment.getDate());
+        holder.tvTime.setText("Time: " + appointment.getTime());
 
         if (showButtons) {
-            holder.layoutActionButtons.setVisibility(View.VISIBLE);
-            // Optional: add click handlers for accept/decline
+            holder.btnAccept.setVisibility(View.VISIBLE);
+            holder.btnDecline.setVisibility(View.VISIBLE);
+
+            holder.btnAccept.setOnClickListener(v -> updateAppointmentStatus(appointment, "accepted"));
+            holder.btnDecline.setOnClickListener(v -> updateAppointmentStatus(appointment, "declined"));
         } else {
-            holder.layoutActionButtons.setVisibility(View.GONE);
+            holder.btnAccept.setVisibility(View.GONE);
+            holder.btnDecline.setVisibility(View.GONE);
         }
+    }
+
+    private void updateAppointmentStatus(Appointment appointment, String status) {
+        FirebaseFirestore.getInstance().collection("appointments")
+                .document(appointment.getId())
+                .update("status", status)
+                .addOnSuccessListener(unused -> {
+                    appointment.setStatus(status);
+                    notifyDataSetChanged();
+                });
     }
 
     @Override
     public int getItemCount() {
-        return appointments != null ? appointments.size() : 0;
+        return appointmentList.size();
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvPatientName, tvDoctorName, tvDate, tvTime, tvStatus;
-        LinearLayout layoutActionButtons;
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView tvPatientName, tvDate, tvTime;
         Button btnAccept, btnDecline;
 
-        ViewHolder(View view) {
-            super(view);
-            tvPatientName = view.findViewById(R.id.tv_patient_name);
-            tvDoctorName = view.findViewById(R.id.tv_doctor_name);
-            tvDate = view.findViewById(R.id.tv_date);
-            tvTime = view.findViewById(R.id.tv_time);
-            tvStatus = view.findViewById(R.id.tv_status);
-            layoutActionButtons = view.findViewById(R.id.layout_action_buttons);
-            btnAccept = view.findViewById(R.id.btn_accept);
-            btnDecline = view.findViewById(R.id.btn_decline);
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+            tvPatientName = itemView.findViewById(R.id.tvPatientName);
+            tvDate = itemView.findViewById(R.id.tvAppointmentDate);
+            tvTime = itemView.findViewById(R.id.tvAppointmentTime);
+            btnAccept = itemView.findViewById(R.id.btnAccept);
+            btnDecline = itemView.findViewById(R.id.btnDecline);
         }
     }
 }

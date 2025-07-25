@@ -1,5 +1,6 @@
 package com.example.nirogya.adapters;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,95 +9,91 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.nirogya.models.DoctorVitalsModel;
 import com.example.nirogya.R;
-import com.example.nirogya.models.Vital;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class VitalsAdapter extends RecyclerView.Adapter<VitalsAdapter.ViewHolder> {
 
-    private List<Vital> vitals;
+    private Context context;
+    private List<DoctorVitalsModel> vitalsList;
 
-    public VitalsAdapter(List<Vital> vitals) {
-        this.vitals = vitals;
+    public VitalsAdapter(Context context, List<DoctorVitalsModel> vitalsList) {
+        this.context = context;
+        this.vitalsList = vitalsList;
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_vital, parent, false);
+    public VitalsAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.item_vital, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Vital vital = vitals.get(position);
+    public void onBindViewHolder(@NonNull VitalsAdapter.ViewHolder holder, int position) {
+        DoctorVitalsModel item = vitalsList.get(position);
 
-        // Set timestamp
-        if (vital.getTimestamp() != null && !vital.getTimestamp().isEmpty()) {
-            holder.tvVitalTimestamp.setText(vital.getTimestamp());
+        Map<String, String> vitals = item.getVitals();
+        Map<String, String> soap = item.getSoap();
+
+        holder.tvSystolic.setText("Systolic: " + safe(get(vitals, "systolic")));
+        holder.tvDiastolic.setText("Diastolic: " + safe(get(vitals, "diastolic")));
+        holder.tvHeartRate.setText("Heart Rate: " + safe(get(vitals, "heartRate")));
+        holder.tvOxygen.setText("Oxygen: " + safe(get(vitals, "oxygen")));
+        holder.tvTemperature.setText("Temperature: " + safe(get(vitals, "temperature")));
+
+        holder.tvSubjective.setText("Subjective: " + safe(get(soap, "subjective")));
+        holder.tvObjective.setText("Objective: " + safe(get(soap, "objective")));
+        holder.tvAssessment.setText("Assessment: " + safe(get(soap, "assessment")));
+        holder.tvPlan.setText("Plan: " + safe(get(soap, "plan")));
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy hh:mm a", Locale.getDefault());
+        if (item.getTimestamp() != null) {
+            holder.tvTimestamp.setText("Date: " + sdf.format(item.getTimestamp().toDate()));
         } else {
-            holder.tvVitalTimestamp.setText("No timestamp");
-        }
-
-        // Combine all vitals into one string
-        StringBuilder vitalValues = new StringBuilder();
-
-        if (vital.getTemperature() != null && !vital.getTemperature().isEmpty()) {
-            vitalValues.append("Temp: ").append(vital.getTemperature()).append("°F");
-        }
-
-        if (vital.getOxygen() != null && !vital.getOxygen().isEmpty()) {
-            if (vitalValues.length() > 0) vitalValues.append(", ");
-            vitalValues.append("SpO2: ").append(vital.getOxygen()).append("%");
-        }
-
-        if (vital.getHeartRate() != null && !vital.getHeartRate().isEmpty()) {
-            if (vitalValues.length() > 0) vitalValues.append(", ");
-            vitalValues.append("HR: ").append(vital.getHeartRate()).append(" bpm");
-        }
-
-        if (vitalValues.length() > 0) {
-            holder.tvVitalValues.setText(vitalValues.toString());
-        } else {
-            holder.tvVitalValues.setText("No vital signs recorded");
-        }
-
-        // Set SOAP notes
-        if (vital.getSoapNotes() != null && !vital.getSoapNotes().trim().isEmpty()) {
-            holder.tvSOAPNotes.setText(vital.getSoapNotes());
-            holder.tvSOAPNotes.setVisibility(View.VISIBLE);
-        } else {
-            holder.tvSOAPNotes.setText("No SOAP notes");
-            holder.tvSOAPNotes.setVisibility(View.GONE);
+            holder.tvTimestamp.setText("Date: N/A");
         }
     }
 
     @Override
     public int getItemCount() {
-        return vitals != null ? vitals.size() : 0;
-    }
-
-    public void updateVitals(List<Vital> newVitals) {
-        this.vitals = newVitals;
-        notifyDataSetChanged();
-    }
-
-    public void updateList(List<Vital> newVitals) {
-        updateVitals(newVitals);
+        return vitalsList.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvVitalTimestamp;
-        TextView tvVitalValues;
-        TextView tvSOAPNotes;
+        TextView tvSystolic, tvDiastolic, tvHeartRate, tvOxygen, tvTemperature;
+        TextView tvSubjective, tvObjective, tvAssessment, tvPlan, tvTimestamp;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvVitalTimestamp = itemView.findViewById(R.id.tvVitalTimestamp);
-            tvVitalValues = itemView.findViewById(R.id.tvVitalValues);
-            tvSOAPNotes = itemView.findViewById(R.id.tvSOAPNotes);
+            tvSystolic = itemView.findViewById(R.id.tvSystolic);
+            tvDiastolic = itemView.findViewById(R.id.tvDiastolic);
+            tvHeartRate = itemView.findViewById(R.id.tvHeartRate);
+            tvOxygen = itemView.findViewById(R.id.tvOxygen);
+            tvTemperature = itemView.findViewById(R.id.tvTemperature);
+            tvSubjective = itemView.findViewById(R.id.tvSubjective);
+            tvObjective = itemView.findViewById(R.id.tvObjective);
+            tvAssessment = itemView.findViewById(R.id.tvAssessment);
+            tvPlan = itemView.findViewById(R.id.tvPlan);
+            tvTimestamp = itemView.findViewById(R.id.tvTimestamp);
         }
+    }
+
+    private String safe(String value) {
+        return (value != null && !value.isEmpty()) ? value : "N/A";
+    }
+
+    private String get(Map<String, String> map, String key) {
+        return (map != null && map.containsKey(key)) ? map.get(key) : "N/A";
+    }
+
+    public void updateList(List<DoctorVitalsModel> newList) {
+        vitalsList = newList;
+        notifyDataSetChanged();
     }
 }

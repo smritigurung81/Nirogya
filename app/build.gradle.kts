@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.services)
-
 }
 
 android {
@@ -43,11 +42,13 @@ dependencies {
     implementation(libs.recyclerview)
     implementation(libs.cardview)
 
-
     // Firebase
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
+
+    // ✅ Realtime Database dependency added
+    implementation("com.google.firebase:firebase-database:20.3.0")
 
     // Room (with kapt)
     implementation(libs.room.runtime)
@@ -65,8 +66,9 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
-    //Cloudinary
+    // Cloudinary
     implementation(libs.cloudinary)
 
-
+    // Flexbox Layout
+    implementation("com.google.android.flexbox:flexbox:3.0.0")
 }

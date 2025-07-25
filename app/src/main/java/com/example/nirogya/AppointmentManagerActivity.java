@@ -1,62 +1,56 @@
 package com.example.nirogya;
 
 import android.os.Bundle;
-import android.widget.Toast;
-
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.nirogya.adapters.AppointmentAdapter;
 import com.example.nirogya.models.Appointment;
 import com.example.nirogya.services.AppointmentService;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
-
 import java.util.ArrayList;
-import java.util.List;
 
 public class AppointmentManagerActivity extends AppCompatActivity {
 
-    private RecyclerView rvAppointments;
-    private AppointmentAdapter appointmentAdapter;
+    private RecyclerView todayAppointments, requestAppointments, acceptedAppointments, declinedAppointments;
+    private AppointmentAdapter adapterToday, adapterPending, adapterAccepted, adapterDeclined;
     private AppointmentService appointmentService;
-    private List<Appointment> appointmentList;
-    private String doctorId;
-    private FirebaseFirestore db;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_appointment_manager);
 
-        doctorId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        db = FirebaseFirestore.getInstance();
+        todayAppointments = findViewById(R.id.rvAppointmentsToday);
+        requestAppointments = findViewById(R.id.rvAppointmentRequests);
+        acceptedAppointments = findViewById(R.id.rvAcceptedAppointments);
+        declinedAppointments = findViewById(R.id.rvDeclinedAppointments);
 
-        // Initialize service
-        appointmentService = new AppointmentService(this, db, doctorId);
+        todayAppointments.setLayoutManager(new LinearLayoutManager(this));
+        requestAppointments.setLayoutManager(new LinearLayoutManager(this));
+        acceptedAppointments.setLayoutManager(new LinearLayoutManager(this));
+        declinedAppointments.setLayoutManager(new LinearLayoutManager(this));
 
-        // Setup RecyclerView
-        rvAppointments = findViewById(R.id.rvAppointments);
-        rvAppointments.setLayoutManager(new LinearLayoutManager(this));
+        adapterToday = new AppointmentAdapter(new ArrayList<>(), false);
+        adapterPending = new AppointmentAdapter(new ArrayList<>(), false);
+        adapterAccepted = new AppointmentAdapter(new ArrayList<>(), false);
+        adapterDeclined = new AppointmentAdapter(new ArrayList<>(), false);
 
-        appointmentList = new ArrayList<>();
-        appointmentAdapter = new AppointmentAdapter(appointmentList, true);
-        rvAppointments.setAdapter(appointmentAdapter);
+        todayAppointments.setAdapter(adapterToday);
+        requestAppointments.setAdapter(adapterPending);
+        acceptedAppointments.setAdapter(adapterAccepted);
+        declinedAppointments.setAdapter(adapterDeclined);
 
-        // Load data
+        appointmentService = new AppointmentService();
+
         loadDoctorAppointments();
     }
 
     private void loadDoctorAppointments() {
-        appointmentService.fetchAppointmentsForDoctor(
-                appointments -> {
-                    appointmentList.clear();
-                    appointmentList.addAll(appointments);
-                    appointmentAdapter.notifyDataSetChanged();
-                },
-                e -> Toast.makeText(this, "Failed to fetch appointments: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-        );
+        String doctorId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        appointmentService.fetchAppointmentsForDoctor(doctorId, "today", adapterToday);
+        appointmentService.fetchAppointmentsForDoctor(doctorId, "pending", adapterPending);
+        appointmentService.fetchAppointmentsForDoctor(doctorId, "accepted", adapterAccepted);
+        appointmentService.fetchAppointmentsForDoctor(doctorId, "declined", adapterDeclined);
     }
 }

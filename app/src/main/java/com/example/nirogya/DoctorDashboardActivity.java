@@ -4,98 +4,110 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
-import android.widget.Toast;
-
+import android.widget.TextView;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.nirogya.adapters.AppointmentAdapter;
+import com.example.nirogya.adapters.PatientListAdapter;
+import com.example.nirogya.models.User;
+import com.example.nirogya.services.AppointmentService;
+import com.example.nirogya.services.PatientService;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.*;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class DoctorDashboardActivity extends AppCompatActivity {
-    FirebaseFirestore db;
-    FirebaseAuth auth;
-    String doctorNMC;
-    RecyclerView rvPatients;
-    PatientListAdapter adapter;
-    Button btnLogout;
+
+    private RecyclerView rvAssignedPatients, rvToday, rvPending, rvAccepted, rvDeclined;
+    private PatientListAdapter patientListAdapter;
+    private AppointmentAdapter adapterToday, adapterPending, adapterAccepted, adapterDeclined;
+    private FirebaseFirestore db;
+    private AppointmentService appointmentService;
+    private PatientService patientService;
+    private Button logoutBtn;
+    private TextView welcomeText;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_doctor_dashboard);
 
+        // Initialize Firestore and Services
         db = FirebaseFirestore.getInstance();
-        auth = FirebaseAuth.getInstance();
+        appointmentService = new AppointmentService();
+        patientService = new PatientService();
 
-        rvPatients = findViewById(R.id.rvAssignedPatients);
-        btnLogout = findViewById(R.id.btnLogout);
-        rvPatients.setLayoutManager(new LinearLayoutManager(this));
+        // UI Elements
+        welcomeText = findViewById(R.id.tvWelcomeDoctor);
+        logoutBtn = findViewById(R.id.btnLogoutDoctor);
 
-        // Logout functionality
-        btnLogout.setOnClickListener(v -> {
-            auth.signOut();
-            Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this, MainActivity.class));
-            finish();
-        });
+        rvAssignedPatients = findViewById(R.id.rvAssignedPatients);
+        rvToday = findViewById(R.id.rvAppointmentsToday);
+        rvPending = findViewById(R.id.rvAppointmentRequests);
+        rvAccepted = findViewById(R.id.rvAcceptedAppointments);
+        rvDeclined = findViewById(R.id.rvDeclinedAppointments);
 
-        // Check for valid session
-        if (auth.getCurrentUser() == null) {
-            Toast.makeText(this, "Session expired. Please log in again.", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this, MainActivity.class));
-            finish();
-            return;
+        // Layout Managers
+        rvAssignedPatients.setLayoutManager(new LinearLayoutManager(this));
+        rvToday.setLayoutManager(new LinearLayoutManager(this));
+        rvPending.setLayoutManager(new LinearLayoutManager(this));
+        rvAccepted.setLayoutManager(new LinearLayoutManager(this));
+        rvDeclined.setLayoutManager(new LinearLayoutManager(this));
+
+        // Adapters
+        adapterToday = new AppointmentAdapter(new ArrayList<>(), false);
+        adapterPending = new AppointmentAdapter(new ArrayList<>(), false);
+        adapterAccepted = new AppointmentAdapter(new ArrayList<>(), false);
+        adapterDeclined = new AppointmentAdapter(new ArrayList<>(), false);
+
+        rvToday.setAdapter(adapterToday);
+        rvPending.setAdapter(adapterPending);
+        rvAccepted.setAdapter(adapterAccepted);
+        rvDeclined.setAdapter(adapterDeclined);
+
+        patientListAdapter = new PatientListAdapter(new ArrayList<User>(), this);
+        rvAssignedPatients.setAdapter(patientListAdapter);
+
+        // Load Doctor Info
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        Log.d("DoctorDashboard", "Doctor UID: " + user.getUid());
+
+        if (user != null) {
+            String uid = user.getUid();
+
+            db.collection("users").document(uid).get().addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    String firstName = documentSnapshot.getString("firstName");
+                    String lastName = documentSnapshot.getString("lastName");
+                    String doctorNmc = documentSnapshot.getString("nmcNumber");
+
+                    String doctorName = (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+                    welcomeText.setText("Welcome, Doctor " + doctorName);
+
+                    // Load assigned patients using linkedDoctorNmc
+                    patientService.fetchAssignedPatients(doctorNmc, patientListAdapter);
+
+                    // Load appointments for doctor
+                    appointmentService.fetchAppointmentsForDoctor(uid, "today", adapterToday);
+                    appointmentService.fetchAppointmentsForDoctor(uid, "pending", adapterPending);
+                    appointmentService.fetchAppointmentsForDoctor(uid, "accepted", adapterAccepted);
+                    appointmentService.fetchAppointmentsForDoctor(uid, "declined", adapterDeclined);
+                }
+            }).addOnFailureListener(e -> {
+                welcomeText.setText("Welcome, Doctor");
+            });
         }
 
-        // Get NMC number from the current doctor's document in the 'users' collection
-        db.collection("users").document(auth.getCurrentUser().getUid())
-                .get()
-                .addOnSuccessListener(doc -> {
-                    doctorNMC = doc.getString("nmcNumber");
-                    if (doctorNMC != null && !doctorNMC.isEmpty()) {
-                        Log.d("DoctorDashboard", "Doctor NMC: " + doctorNMC);
-                        loadAssignedPatients();
-                    } else {
-                        Toast.makeText(this, "NMC number not found.", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to load doctor info", Toast.LENGTH_SHORT).show();
-                    Log.e("DoctorDashboard", "Error fetching doctor data", e);
-                });
-    }
-
-    private void loadAssignedPatients() {
-        Log.d("DoctorDashboard", "Loading patients for NMC: " + doctorNMC);
-
-        db.collection("users")
-                .whereEqualTo("linkedDoctorNmc", doctorNMC)
-                .get()
-                .addOnSuccessListener(query -> {
-                    List<Patient> patientList = new ArrayList<>();
-                    for (DocumentSnapshot snapshot : query.getDocuments()) {
-                        Patient patient = snapshot.toObject(Patient.class);
-                        if (patient != null) {
-                            patient.setUid(snapshot.getId()); // add UID manually
-                            patientList.add(patient);
-                        }
-                    }
-
-                    if (patientList.isEmpty()) {
-                        Toast.makeText(this, "No patients assigned yet.", Toast.LENGTH_SHORT).show();
-                    }
-
-                    adapter = new PatientListAdapter(this, patientList);
-                    rvPatients.setAdapter(adapter);
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to load patients", Toast.LENGTH_SHORT).show();
-                    Log.e("DoctorDashboard", "Error loading patient list", e);
-                });
+        // Logout Button
+        logoutBtn.setOnClickListener(v -> {
+            FirebaseAuth.getInstance().signOut();
+            startActivity(new Intent(DoctorDashboardActivity.this, LoginActivity.class));
+            finish();
+        });
     }
 }

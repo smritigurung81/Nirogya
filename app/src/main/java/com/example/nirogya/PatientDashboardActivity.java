@@ -8,26 +8,29 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.nirogya.adapters.VitalsAdapter;
-import com.example.nirogya.models.Vital;
+import com.example.nirogya.models.DoctorVitalsModel;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.Query;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 public class PatientDashboardActivity extends AppCompatActivity {
 
-    private RecyclerView rvVitals, rvDoctorVitals, rvLabReports, rvAppointmentsToday;
-    private VitalsAdapter vitalsAdapter, doctorVitalsAdapter;
+    private TextView tvWelcome, tvPatientVitals, tvDoctorNotes;
     private Button btnAddVitals, btnBookAppointment, btnLogout;
-    private TextView tvReminder, tvTodayAppointmentsLabel;
 
-    private FirebaseFirestore db;
+    private FirebaseAuth auth;
+    private FirebaseFirestore firestore;
+    private DatabaseReference rtdbRef;
     private String currentUserId;
 
     @Override
@@ -35,135 +38,125 @@ public class PatientDashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_patient_dashboard);
 
-        // Initialize Firebase
-        db = FirebaseFirestore.getInstance();
-        currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ?
-                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        auth = FirebaseAuth.getInstance();
+        firestore = FirebaseFirestore.getInstance();
 
-        if (currentUserId == null) {
-            // Redirect to login if user not logged in
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
         }
 
-        // Initialize views and setup
+        currentUserId = user.getUid();
+        rtdbRef = FirebaseDatabase.getInstance().getReference("vitals_user").child(currentUserId);
+
         initializeViews();
-        setupRecyclerViews();
         setupButtonListeners();
-        loadPatientData();
+        loadWelcomeMessage();
+        listenToRealtimeVitals();
+        loadDoctorVitals();
     }
 
     private void initializeViews() {
-        rvVitals = findViewById(R.id.rvVitals);
-        rvDoctorVitals = findViewById(R.id.rvDoctorVitals);
-        rvLabReports = findViewById(R.id.rvLabReports);
-        rvAppointmentsToday = findViewById(R.id.rvAppointmentsToday);
-
+        tvWelcome = findViewById(R.id.tvWelcomePatient);
+        tvPatientVitals = findViewById(R.id.tvPatientVitals);
+        tvDoctorNotes = findViewById(R.id.tvDoctorNotes);
         btnAddVitals = findViewById(R.id.btnAddVitals);
         btnBookAppointment = findViewById(R.id.btnBookAppointment);
-        btnLogout = findViewById(R.id.btnLogout);
-
-        tvReminder = findViewById(R.id.tvReminder);
-        tvTodayAppointmentsLabel = findViewById(R.id.tvTodayAppointmentsLabel);
-    }
-
-    private void setupRecyclerViews() {
-        rvVitals.setLayoutManager(new LinearLayoutManager(this));
-        rvDoctorVitals.setLayoutManager(new LinearLayoutManager(this));
-        rvLabReports.setLayoutManager(new LinearLayoutManager(this));
-        rvAppointmentsToday.setLayoutManager(new LinearLayoutManager(this));
-
-        vitalsAdapter = new VitalsAdapter(new ArrayList<>());
-        doctorVitalsAdapter = new VitalsAdapter(new ArrayList<>());
-
-        rvVitals.setAdapter(vitalsAdapter);
-        rvDoctorVitals.setAdapter(doctorVitalsAdapter);
-
-        rvLabReports.setVisibility(View.GONE);
-        rvAppointmentsToday.setVisibility(View.GONE);
+        btnLogout = findViewById(R.id.btnLogoutPatient);
     }
 
     private void setupButtonListeners() {
-        btnAddVitals.setOnClickListener(v -> {
-            Toast.makeText(this, "Add Vitals feature coming soon", Toast.LENGTH_SHORT).show();
-        });
+        btnAddVitals.setOnClickListener(v ->
+                Toast.makeText(this, "Add Vitals feature coming soon", Toast.LENGTH_SHORT).show());
 
-        btnBookAppointment.setOnClickListener(v -> {
-            Toast.makeText(this, "Book Appointment feature coming soon", Toast.LENGTH_SHORT).show();
-        });
+        btnBookAppointment.setOnClickListener(v ->
+                Toast.makeText(this, "Book Appointment feature coming soon", Toast.LENGTH_SHORT).show());
 
         btnLogout.setOnClickListener(v -> {
-            FirebaseAuth.getInstance().signOut();
-            startActivity(new Intent(this, LoginActivity.class));
+            auth.signOut();
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
             finish();
         });
     }
 
-    private void loadPatientData() {
-        loadPatientVitals();
-        loadDoctorVitals();
-        // loadLabReports(); // Enable once LabReportAdapter is ready
-        // loadTodaysAppointments(); // Enable once AppointmentAdapter is ready
+    private void loadWelcomeMessage() {
+        firestore.collection("users")
+                .document(currentUserId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    String name = documentSnapshot.getString("name");
+                    if (name != null) {
+                        tvWelcome.setText("Welcome, " + name);
+                    }
+                });
     }
 
-    private void loadPatientVitals() {
-        db.collection("vitals")
-                .whereEqualTo("patientId", currentUserId)
-                .whereEqualTo("enteredBy", "patient")
-                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
-                .limit(10)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<Vital> vitals = new ArrayList<>();
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        try {
-                            Vital vital = document.toObject(Vital.class);
-                            vitals.add(vital);
-                        } catch (Exception ignored) {}
+    private void listenToRealtimeVitals() {
+        rtdbRef.limitToLast(1).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                for (DataSnapshot snap : snapshot.getChildren()) {
+                    Map<String, Object> vitals = (Map<String, Object>) snap.child("vitals").getValue();
+                    if (vitals != null) {
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("Systolic: ").append(vitals.get("systolic")).append("\n");
+                        sb.append("Diastolic: ").append(vitals.get("diastolic")).append("\n");
+                        sb.append("Heart Rate: ").append(vitals.get("heartrate")).append("\n");
+                        sb.append("Oxygen: ").append(vitals.get("oxygen")).append("\n");
+                        sb.append("Temperature: ").append(vitals.get("temperature")).append("\n");
+                        tvPatientVitals.setText(sb.toString());
                     }
-                    vitalsAdapter.updateVitals(vitals);
+                }
+            }
 
-                    if (vitals.isEmpty()) {
-                        showEmptyVitalsMessage(rvVitals, "No vitals recorded yet. Tap 'Add Vitals' to get started.");
-                    }
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Failed to load your vitals: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Toast.makeText(PatientDashboardActivity.this, "Failed to load real-time vitals", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void loadDoctorVitals() {
-        db.collection("vitals")
-                .whereEqualTo("patientId", currentUserId)
-                .whereEqualTo("enteredBy", "doctor")
+        firestore.collection("users")
+                .document(currentUserId)
+                .collection("doctor_vitals")
                 .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
-                .limit(10)
+                .limit(1)
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<Vital> vitals = new ArrayList<>();
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        try {
-                            Vital vital = document.toObject(Vital.class);
-                            vitals.add(vital);
-                        } catch (Exception ignored) {}
-                    }
-                    doctorVitalsAdapter.updateVitals(vitals);
+                .addOnSuccessListener(snapshot -> {
+                    if (!snapshot.isEmpty()) {
+                        DocumentSnapshot doc = snapshot.getDocuments().get(0);
+                        DoctorVitalsModel model = doc.toObject(DoctorVitalsModel.class);
 
-                    if (vitals.isEmpty()) {
-                        showEmptyVitalsMessage(rvDoctorVitals, "No vitals from doctors yet.");
+                        StringBuilder sb = new StringBuilder();
+                        if (model != null) {
+                            Map<String, String> vitals = model.getVitals();
+                            Map<String, String> soap = model.getSoap();
+
+                            if (vitals != null) {
+                                sb.append("Systolic: ").append(vitals.get("systolic")).append("\n");
+                                sb.append("Diastolic: ").append(vitals.get("diastolic")).append("\n");
+                                sb.append("Heart Rate: ").append(vitals.get("heartrate")).append("\n");
+                                sb.append("Oxygen: ").append(vitals.get("oxygen")).append("\n");
+                                sb.append("Temperature: ").append(vitals.get("temperature")).append("\n");
+                            }
+
+                            if (soap != null) {
+                                sb.append("Subjective: ").append(soap.get("subjective")).append("\n");
+                                sb.append("Objective: ").append(soap.get("objective")).append("\n");
+                                sb.append("Assessment: ").append(soap.get("assessment")).append("\n");
+                                sb.append("Plan: ").append(soap.get("plan")).append("\n");
+                            }
+                        }
+
+                        tvDoctorNotes.setText(sb.toString());
                     }
                 })
                 .addOnFailureListener(e ->
-                        Toast.makeText(this, "Failed to load doctor vitals: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-    }
-
-    private void showEmptyVitalsMessage(RecyclerView recyclerView, String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        loadPatientData();
+                        Toast.makeText(this, "Failed to load doctor vitals", Toast.LENGTH_SHORT).show());
     }
 }

@@ -16,4 +16,9 @@
 
     <!-- Optional Accent -->
     <color name="accentColor">#FF9800</color>
+    <color name="teal_700">#018786</color>
+    <color name="purple_500">#6200EE</color>
+    <color name="light_green">#E6F4EA</color>
+    <color name="light_red">#FCE8E6</color>
+
 </resources>

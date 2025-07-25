@@ -1,45 +1,34 @@
 package com.example.nirogya.services;
 
-import android.content.Context;
-import android.widget.Toast;
-import com.example.nirogya.Patient;
-import com.google.firebase.firestore.*;
+import android.util.Log;
 
-import java.util.*;
+import com.example.nirogya.adapters.PatientListAdapter;
+import com.example.nirogya.models.User;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PatientService {
-    private final FirebaseFirestore db;
-    private final Context context;
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    public interface PatientFetchCallback {
-        void onFetched(List<Patient> patients);
-        void onError(String error);
-    }
-
-    public PatientService(Context context, FirebaseFirestore db) {
-        this.context = context;
-        this.db = db;
-    }
-
-    public void getAssignedPatients(String doctorNmc, PatientFetchCallback callback) {
+    public void fetchAssignedPatients(String doctorNmc, PatientListAdapter adapter) {
         db.collection("users")
                 .whereEqualTo("linkedDoctorNmc", doctorNmc)
                 .get()
-                .addOnSuccessListener(query -> {
-                    List<Patient> patientList = new ArrayList<>();
-                    for (DocumentSnapshot snapshot : query.getDocuments()) {
-                        Patient patient = snapshot.toObject(Patient.class);
-                        if (patient != null) {
-                            patient.setUid(snapshot.getId());
-                            patientList.add(patient);
+                .addOnSuccessListener(querySnapshot -> {
+                    List<User> patients = new ArrayList<>();
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        User user = doc.toObject(User.class);
+                        if (user != null) {
+                            user.setUid(doc.getId()); // IMPORTANT: ensures UID is preserved
+                            patients.add(user);
                         }
                     }
-                    callback.onFetched(patientList);
+                    Log.d("PatientService", "Fetched assigned patients: " + patients.size());
+                    adapter.updateList(patients);
                 })
-                .addOnFailureListener(e -> {
-                    callback.onError(e.getMessage());
-                    Toast.makeText(context, "Failed to fetch patients", Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e -> Log.e("PatientService", "Failed to fetch patients: " + e.getMessage()));
     }
 }
-

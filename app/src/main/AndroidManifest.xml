@@ -33,6 +33,8 @@
         <activity android:name=".LabTechnicianDashboardActivity" android:exported="false" />
         <activity android:name=".LabReportsViewerActivity" android:exported="false" />
         <activity android:name=".AppointmentManagerActivity" android:exported="false" />
+        <activity android:name=".PatientHistoryActivity" />
+
 
         <!-- ✅ ADDED: Fixes crash when opening View My Reports -->
         <activity android:name=".MyReportsActivity" android:exported="false" />

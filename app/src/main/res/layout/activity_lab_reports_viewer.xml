@@ -7,7 +7,7 @@
     android:background="#f5f5f5"
     tools:context=".LabReportsViewerActivity">
 
-    <!-- Optional: Add a toolbar or header -->
+    <!-- Header -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -19,24 +19,31 @@
         android:textColor="@android:color/black"
         android:elevation="4dp" />
 
-    <!-- This is the RecyclerView that your Activity is looking for -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvReports"
+    <!-- Container for RecyclerView and Empty State -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="8dp"
-        android:scrollbars="vertical"
-        android:clipToPadding="false" />
+        android:layout_height="match_parent">
 
-    <!-- Optional: Add an empty state view -->
-    <TextView
-        android:id="@+id/tvEmptyState"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="No lab reports found"
-        android:textSize="16sp"
-        android:textColor="@android:color/darker_gray"
-        android:gravity="center"
-        android:visibility="gone" />
+        <!-- RecyclerView with correct ID -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewLabReports"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp"
+            android:clipToPadding="false"
+            android:scrollbars="vertical" />
+
+        <!-- Empty state overlaid when no reports -->
+        <TextView
+            android:id="@+id/tvEmptyState"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="No lab reports found"
+            android:textSize="16sp"
+            android:textColor="@android:color/darker_gray"
+            android:gravity="center"
+            android:visibility="gone"
+            android:padding="20dp" />
+    </FrameLayout>
 
 </LinearLayout>

@@ -1,102 +1,167 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F8FA">
+    android:fillViewport="true"
+    android:background="#FFFFFF">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="16dp">
 
         <!-- App Logo -->
         <ImageView
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_gravity="center"
+            android:id="@+id/ivAppLogo"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
             android:src="@drawable/logo"
+            android:layout_gravity="center_horizontal"
             android:contentDescription="App Logo"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="16dp" />
 
-        <!-- Welcome Message -->
+        <!-- Welcome Text -->
         <TextView
+            android:id="@+id/tvWelcomeDoctor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Welcome, Doctor"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#333"
-            android:layout_gravity="center"
+            android:textColor="#000000"
+            android:layout_gravity="center_horizontal"
             android:layout_marginBottom="24dp" />
 
-        <!-- Assigned Patients Section -->
+        <!-- Assigned Patients -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Assigned Patients"
-            android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#333"
-            android:layout_marginBottom="12dp" />
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvAssignedPatients"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:nestedScrollingEnabled="false"
-            android:background="@android:color/white"
-            android:elevation="2dp"
-            android:padding="8dp"
             android:layout_marginBottom="24dp" />
 
-        <!-- Appointment Requests Section -->
+        <!-- Today's Appointments -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Today's Appointments"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvAppointmentsToday"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Appointment Requests -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Appointment Requests"
-            android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#333"
-            android:layout_marginBottom="12dp" />
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvAppointments"
+            android:id="@+id/rvAppointmentRequests"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:nestedScrollingEnabled="false"
-            android:background="@android:color/white"
-            android:elevation="2dp"
-            android:padding="8dp"
             android:layout_marginBottom="24dp" />
 
-        <!-- Add Vitals & Notes (Hidden initially) -->
-        <Button
-            android:id="@+id/btnAddDoctorVitals"
+        <!-- Accepted Appointments -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="+ Add Vitals and Notes"
-            android:backgroundTint="#4CAF50"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
-            android:padding="14dp"
-            android:elevation="4dp"
-            android:layout_marginBottom="16dp"
-            android:visibility="gone" />
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            android:padding="12dp"
+            android:backgroundTint="@color/light_green">
 
-        <!-- Logout Button -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="4dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Accepted Appointments"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="#000000"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:layout_marginBottom="8dp" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvAcceptedAppointments"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Declined Appointments -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            android:padding="12dp"
+            android:backgroundTint="@color/light_red">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="4dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Declined Appointments"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="#000000"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:layout_marginBottom="8dp" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvDeclinedAppointments"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Logout Button (Red) -->
         <Button
-            android:id="@+id/btnLogout"
+            android:id="@+id/btnLogoutDoctor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Logout"
-            android:textStyle="bold"
-            android:backgroundTint="#F44336"
             android:textColor="@android:color/white"
-            android:padding="14dp"
-            android:elevation="4dp"
-            android:layout_marginBottom="32dp" />
-
+            android:backgroundTint="@android:color/holo_red_dark"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="24dp"/>
     </LinearLayout>
 </ScrollView>
-
