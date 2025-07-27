@@ -31,16 +31,6 @@
             android:textColor="#000000"
             android:layout_marginBottom="8dp" />
 
-        <!-- Days Remaining Reminder -->
-        <TextView
-            android:id="@+id/tvDaysRemaining"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Calculating days left..."
-            android:textSize="14sp"
-            android:textColor="#FF5722"
-            android:layout_marginBottom="12dp" />
-
         <!-- Sensor Vitals -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
@@ -48,7 +38,6 @@
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="12dp"
             app:cardElevation="4dp">
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -56,6 +45,7 @@
                 android:padding="12dp">
 
                 <TextView
+                    android:id="@+id/tvSensorVitals"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Sensor Vitals"
@@ -63,15 +53,67 @@
                     android:textSize="16sp"
                     android:layout_marginBottom="8dp" />
 
-                <TextView
-                    android:id="@+id/tvSensorVitals"
+                <!-- Heart Rate -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Fetching sensor data..."
-                    android:textColor="#000000"
-                    android:textSize="14sp"
-                    android:background="#E0F7FA"
-                    android:padding="8dp" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_heart_rate"
+                        android:layout_marginEnd="8dp" />
+                    <TextView
+                        android:id="@+id/tvSensorHR"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Heart Rate: -- bpm"
+                        android:textSize="14sp"
+                        android:textColor="#000000" />
+                </LinearLayout>
+
+                <!-- SpO2 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_oxygen"
+                        android:layout_marginEnd="8dp" />
+                    <TextView
+                        android:id="@+id/tvSensorSpO2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SpO₂: --%"
+                        android:textSize="14sp"
+                        android:textColor="#000000" />
+                </LinearLayout>
+
+                <!-- Temperature -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_temperature"
+                        android:layout_marginEnd="8dp" />
+                    <TextView
+                        android:id="@+id/tvSensorTemp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Temperature: -- °C"
+                        android:textSize="14sp"
+                        android:textColor="#000000" />
+                </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -228,7 +270,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="12dp">
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -246,7 +287,6 @@
                         android:textSize="14sp"
                         android:textStyle="bold" />
                 </LinearLayout>
-
                 <TextView
                     android:id="@+id/tvDoctorNotes"
                     android:layout_width="match_parent"
@@ -259,21 +299,19 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Lab Reports Section -->
+        <!-- Lab Reports -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="12dp"
             app:cardElevation="4dp">
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="12dp"
                 android:background="#E8F5E9">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -282,7 +320,6 @@
                     android:textStyle="bold"
                     android:textColor="#000000"
                     android:layout_marginBottom="8dp" />
-
                 <LinearLayout
                     android:id="@+id/labReportsContainer"
                     android:layout_width="match_parent"
@@ -292,36 +329,90 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Appointments -->
+        <!-- Reminder Section -->
+        <LinearLayout
+            android:id="@+id/layoutReminder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:layout_marginBottom="12dp"
+            android:visibility="gone"
+            android:animation="@anim/blink">
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/ic_bell"
+                android:tint="#FF0000" />
+            <TextView
+                android:id="@+id/tvAppointmentReminder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reminder: calculating..."
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#FF0000" />
+        </LinearLayout>
+
+        <!-- Today's Appointments -->
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Today's Appointments"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="6dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="#000000" />
+        <LinearLayout
+            android:id="@+id/todaysAppointmentsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Accepted Appointments -->
+        <TextView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Accepted Appointments"
             android:textStyle="bold"
-            android:textSize="14sp" />
-        <TextView
-            android:id="@+id/tvAcceptedAppointments"
+            android:textSize="16sp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="6dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="#000000" />
+        <LinearLayout
+            android:id="@+id/acceptedAppointmentsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Fetching accepted appointments..."
-            android:background="#E8F5E9"
-            android:padding="8dp"
-            android:layout_marginBottom="8dp" />
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp" />
 
+        <!-- Declined Appointments -->
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Declined Appointments"
             android:textStyle="bold"
-            android:textSize="14sp" />
-        <TextView
-            android:id="@+id/tvDeclinedAppointments"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="6dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="#000000" />
+        <LinearLayout
+            android:id="@+id/declinedAppointmentsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Fetching declined appointments..."
-            android:background="#FFEBEE"
-            android:padding="8dp"
-            android:layout_marginBottom="16dp" />
+            android:orientation="vertical"
+            android:layout_marginBottom="8dp" />
 
         <!-- Book Appointment Button -->
         <Button
