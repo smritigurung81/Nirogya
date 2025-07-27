@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import com.example.nirogya.models.LabReport;
 
 
 public class PatientDashboardActivity extends AppCompatActivity {
@@ -236,6 +237,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
 
     private void loadLabReports() {
         labReportsContainer.removeAllViews();
+
         firestore.collection("lab_reports")
                 .whereEqualTo("patientId", currentUserId)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -243,19 +245,45 @@ public class PatientDashboardActivity extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(snapshots -> {
                     for (DocumentSnapshot doc : snapshots) {
-                        View card = getLayoutInflater().inflate(R.layout.item_lab_report, labReportsContainer, false);
-                        ((TextView) card.findViewById(R.id.tvReportTitle)).setText(doc.getString("reportTitle"));
-                        ((TextView) card.findViewById(R.id.tvPatientName)).setText("Patient: " + doc.getString("patientName"));
-                        ((TextView) card.findViewById(R.id.tvReportType)).setText("Type: " + doc.getString("reportType"));
-                        ((TextView) card.findViewById(R.id.tvTechnicianName)).setText("By: " + doc.getString("technicianName"));
-                        ((TextView) card.findViewById(R.id.tvRemarks)).setText("Remarks: " + doc.getString("remarks"));
+                        LabReport report = doc.toObject(LabReport.class);
+                        if (report == null) continue;
 
-                        LinearLayout rowContainer = card.findViewById(R.id.containerReportRows);
-                        String type = doc.getString("reportType");
-                        if ("CBC".equals(type)) {
-                            addTableRow(rowContainer, "Hemoglobin", doc.getString("hemoglobin"), "12–16 g/dL");
+                        View card = getLayoutInflater().inflate(R.layout.item_lab_report, labReportsContainer, false);
+
+                        ((TextView) card.findViewById(R.id.tvReportTitle)).setText(report.getReportTitle());
+                        ((TextView) card.findViewById(R.id.tvPatientName)).setText("Patient: " + report.getPatientName());
+                        ((TextView) card.findViewById(R.id.tvReportType)).setText("Type: " + report.getReportType());
+                        ((TextView) card.findViewById(R.id.tvTechnicianName)).setText("By: " + report.getTechnicianName());
+
+                        // Remarks handling
+                        String remarks = report.getRemarks();
+                        if (remarks == null || remarks.trim().isEmpty() || "null".equalsIgnoreCase(remarks.trim())) {
+                            remarks = report.generateRemark();
                         }
 
+                        ((TextView) card.findViewById(R.id.tvRemarks)).setText("Remarks: " + remarks);
+
+                        // Test data rows
+                        LinearLayout rowContainer = card.findViewById(R.id.containerReportRows);
+                        String type = report.getReportType();
+
+                        if ("CBC".equalsIgnoreCase(type)) {
+                            addTableRow(rowContainer, "Hemoglobin", report.getHemoglobin(), "12–16 g/dL");
+                            addTableRow(rowContainer, "WBC", report.getWbc(), "4–11 x10⁹/L");
+                            addTableRow(rowContainer, "Platelets", report.getPlatelets(), "150–400 x10⁹/L");
+
+                        } else if ("Lipid Profile".equalsIgnoreCase(type) || "Lipid Test".equalsIgnoreCase(type)) {
+                            addTableRow(rowContainer, "HDL", report.getHdl(), "> 60 mg/dL");
+                            addTableRow(rowContainer, "LDL", report.getLdl(), "< 100 mg/dL");
+                            addTableRow(rowContainer, "Triglycerides", report.getTriglycerides(), "< 150 mg/dL");
+
+                        } else if ("Blood Sugar".equalsIgnoreCase(type)) {
+                            addTableRow(rowContainer, "Fasting Sugar", report.getFastingSugar(), "< 100 mg/dL");
+                            addTableRow(rowContainer, "Postprandial Sugar", report.getPostSugar(), "< 140 mg/dL");
+                            addTableRow(rowContainer, "HbA1c", report.getHba1c(), "< 5.7%");
+                        }
+
+                        // Expand/collapse toggle
                         card.setOnClickListener(v -> {
                             View details = card.findViewById(R.id.layoutReportDetails);
                             details.setVisibility(details.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);

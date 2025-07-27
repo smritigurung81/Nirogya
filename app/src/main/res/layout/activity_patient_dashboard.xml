@@ -31,7 +31,7 @@
             android:textColor="#000000"
             android:layout_marginBottom="8dp" />
 
-        <!-- Sensor Vitals -->
+        <!-- Sensor Vitals Section -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -126,7 +126,7 @@
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
 
-        <!-- Blood Pressure -->
+        <!-- Doctor's Vitals Cards -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -159,7 +159,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Heart Rate -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -192,7 +191,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Oxygen Saturation -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -225,7 +223,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Temperature -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -299,7 +296,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Lab Reports -->
+        <!-- Lab Reports Section -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -357,7 +354,7 @@
                 android:textColor="#FF0000" />
         </LinearLayout>
 
-        <!-- Today's Appointments -->
+        <!-- Appointment Sections (Today, Accepted, Declined) -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -376,7 +373,6 @@
             android:orientation="vertical"
             android:layout_marginBottom="12dp" />
 
-        <!-- Accepted Appointments -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -395,7 +391,6 @@
             android:orientation="vertical"
             android:layout_marginBottom="24dp" />
 
-        <!-- Declined Appointments -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -414,7 +409,7 @@
             android:orientation="vertical"
             android:layout_marginBottom="8dp" />
 
-        <!-- Book Appointment Button -->
+        <!-- Action Buttons -->
         <Button
             android:id="@+id/btnBookAppointment"
             android:layout_width="match_parent"
@@ -424,7 +419,6 @@
             android:textColor="@android:color/white"
             android:layout_marginBottom="12dp" />
 
-        <!-- Logout Button -->
         <Button
             android:id="@+id/btnLogoutPatient"
             android:layout_width="match_parent"
