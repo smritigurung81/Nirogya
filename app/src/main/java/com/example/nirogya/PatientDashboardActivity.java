@@ -130,49 +130,46 @@ public class PatientDashboardActivity extends AppCompatActivity {
     }
 
     private void loadSensorVitals() {
-        // Set initial loading states for sensor vitals
+        // Set placeholders
         tvSensorHR.setText("Heart Rate: -- bpm");
         tvSensorSpO2.setText("SpO₂: --%");
         tvSensorTemp.setText("Temperature: -- °C");
 
         realtimeDb.child("sensor").addValueEventListener(new ValueEventListener() {
-
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 Log.d("SensorData", ">>> Entered onDataChange()");
 
                 if (snapshot.exists()) {
-                    Object hrObj = snapshot.child("heartRate").getValue();
-                    Object spo2Obj = snapshot.child("spo2").getValue();
-                    Object tempObj = snapshot.child("temperature_C").getValue();
-
-                    Log.d("SensorData", "Raw values: HR=" + hrObj + ", SPO2=" + spo2Obj + ", Temp=" + tempObj);
-
                     try {
-                        // Update sensor vitals TextViews with correct formatting
+                        Object hrObj = snapshot.child("heartRate").getValue();
+                        Object spo2Obj = snapshot.child("spo2").getValue();
+                        Object tempObj = snapshot.child("temperature_C").getValue();
+
+                        Log.d("SensorData", "Raw values: HR=" + hrObj + ", SPO2=" + spo2Obj + ", Temp=" + tempObj);
+
                         if (hrObj != null) {
-                            int heartRate = ((Number) hrObj).intValue();
-                            tvSensorHR.setText("Heart Rate: " + heartRate + " bpm");
+                            float heartRate = ((Number) hrObj).floatValue();
+                            tvSensorHR.setText("Heart Rate: " + String.format(Locale.getDefault(), "%.1f", heartRate) + " bpm");
                         }
 
                         if (spo2Obj != null) {
-                            int spo2 = ((Number) spo2Obj).intValue();
-                            tvSensorSpO2.setText("SpO₂: " + spo2 + "%");
+                            float spo2 = ((Number) spo2Obj).floatValue();
+                            tvSensorSpO2.setText("SpO₂: " + String.format(Locale.getDefault(), "%.1f", spo2) + " %");
                         }
 
                         if (tempObj != null) {
-                            float temperature = ((Number) tempObj).floatValue();
-                            tvSensorTemp.setText("Temperature: " + String.format("%.1f", temperature) + " °C");
+                            float temp = ((Number) tempObj).floatValue();
+                            tvSensorTemp.setText("Temperature: " + String.format(Locale.getDefault(), "%.1f", temp) + " °C");
                         }
 
                     } catch (Exception e) {
-                        Log.e("SensorData", "Conversion error: " + e.getMessage());
+                        Log.e("SensorData", "Data parsing error: " + e.getMessage());
                         tvSensorHR.setText("Heart Rate: Error");
                         tvSensorSpO2.setText("SpO₂: Error");
                         tvSensorTemp.setText("Temperature: Error");
                     }
                 } else {
-                    Log.d("SensorData", "Snapshot doesn't exist");
                     tvSensorHR.setText("Heart Rate: No data");
                     tvSensorSpO2.setText("SpO₂: No data");
                     tvSensorTemp.setText("Temperature: No data");
@@ -181,13 +178,14 @@ public class PatientDashboardActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError error) {
+                Log.e("SensorData", "Firebase Error: " + error.getMessage());
                 tvSensorHR.setText("Heart Rate: Error");
                 tvSensorSpO2.setText("SpO₂: Error");
                 tvSensorTemp.setText("Temperature: Error");
-                Log.e("SensorData", "onCancelled: " + error.getMessage());
             }
         });
     }
+
 
     private void loadDoctorVitals() {
         firestore.collection("users").document(currentUserId)
