@@ -335,6 +335,8 @@ public class PatientDashboardActivity extends AppCompatActivity {
                                         } else {
                                             tvAppointmentReminder.setText("Reminder: Appointment after " + daysLeft + " day" + (daysLeft == 1 ? "" : "s"));
                                         }
+                                        Animation blinkAnim = AnimationUtils.loadAnimation(this, R.anim.blink);
+                                        layoutReminder.startAnimation(blinkAnim);
                                         return;
                                     }
                                 }
