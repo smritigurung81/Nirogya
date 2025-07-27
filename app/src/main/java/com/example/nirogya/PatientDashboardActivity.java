@@ -22,11 +22,14 @@ import com.google.firebase.firestore.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 
 public class PatientDashboardActivity extends AppCompatActivity {
 
     private TextView tvWelcome, tvSensorVitals, tvDaysRemaining,
             tvAcceptedAppointments, tvDeclinedAppointments;
+    private ImageButton btnChatbot;
     private TextView tvBP, tvHR, tvOxygen, tvTemp, tvDoctorNotes;
     private LinearLayout labReportsContainer;
     private Button btnBookAppointment, btnLogoutPatient;
@@ -43,6 +46,17 @@ public class PatientDashboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_patient_dashboard);
 
         initializeViews();
+        ImageButton btnChatbot = findViewById(R.id.btnChatbot);
+        btnChatbot.setOnTouchListener((v, event) -> false);
+        // Add chatbot button listener here:
+        btnChatbot.setOnClickListener(v -> {
+            Intent intent = new Intent(PatientDashboardActivity.this, ChatbotActivity.class);
+            startActivity(intent);
+        });
+
+        Animation pulse = AnimationUtils.loadAnimation(this, R.anim.pulse);
+        btnChatbot.startAnimation(pulse);
+
 
         firebaseAuth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
@@ -74,6 +88,7 @@ public class PatientDashboardActivity extends AppCompatActivity {
         tvOxygen = findViewById(R.id.tvOxygen);
         tvTemp = findViewById(R.id.tvTemp);
         tvDoctorNotes = findViewById(R.id.tvDoctorNotes);
+        btnChatbot = findViewById(R.id.btnChatbot);
     }
 
     private void fetchUserAndProceed() {
