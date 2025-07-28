@@ -54,33 +54,20 @@ public class RegisterActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
                 String selectedRole = parent.getItemAtPosition(pos).toString();
-                Log.d("RegisterActivity", "Role selected: " + selectedRole);
 
                 layoutDoctor.setVisibility(View.GONE);
                 layoutPatient.setVisibility(View.GONE);
                 layoutLabTechnician.setVisibility(View.GONE);
-
-                // Clear the known doctor NMC field when not selecting patient
-                if (!selectedRole.equals("patient")) {
-                    Log.d("RegisterActivity", "Clearing known doctor NMC field");
-                    etKnownDoctorNMC.setText("");
-                }
-
-                if (selectedRole.equals("doctor")) {
-                    layoutDoctor.setVisibility(View.VISIBLE);
-                } else if (selectedRole.equals("patient")) {
-                    layoutPatient.setVisibility(View.VISIBLE);
-                } else if (selectedRole.equals("lab technician")) {
-                    layoutLabTechnician.setVisibility(View.VISIBLE);
-                }
+                if (!selectedRole.equals("patient")) etKnownDoctorNMC.setText("");
+                if (selectedRole.equals("doctor")) layoutDoctor.setVisibility(View.VISIBLE);
+                else if (selectedRole.equals("patient")) layoutPatient.setVisibility(View.VISIBLE);
+                else if (selectedRole.equals("lab technician")) layoutLabTechnician.setVisibility(View.VISIBLE);
             }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
 
         btnRegister.setOnClickListener(v -> handleRegistration());
-
         tvLogin.setOnClickListener(v -> startActivity(new Intent(this, MainActivity.class)));
     }
 
@@ -93,83 +80,67 @@ public class RegisterActivity extends AppCompatActivity {
 
         String role;
         switch (roleInput.toLowerCase()) {
-            case "patient":
-                role = "Patient";
-                break;
-            case "doctor":
-                role = "Doctor";
-                break;
-            case "lab technician":
-                role = "LabTechnician";
-                break;
-            default:
-                role = "";
+            case "patient": role = "Patient"; break;
+            case "doctor": role = "Doctor"; break;
+            case "lab technician": role = "LabTechnician"; break;
+            default: role = "";
         }
-
-        Log.d("RegisterActivity", "Selected role: " + role);
 
         if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
-            return;
+            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show(); return;
         }
-
         if (role.isEmpty()) {
-            Toast.makeText(this, "Please select a valid role", Toast.LENGTH_SHORT).show();
-            return;
+            Toast.makeText(this, "Please select a valid role", Toast.LENGTH_SHORT).show(); return;
         }
-
         if (password.length() < 6) {
-            Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
-            return;
+            Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show(); return;
         }
 
-        String nmc = etNMC.getText().toString().trim().toUpperCase();
+        String nmc = etNMC.getText().toString().trim();
         if (role.equals("Doctor")) {
+            nmc = nmc.replaceAll("[^\\d]", "");
             if (nmc.isEmpty()) {
-                Toast.makeText(this, "Please enter your NMC number", Toast.LENGTH_SHORT).show();
-                return;
+                Toast.makeText(this, "Please enter your NMC number", Toast.LENGTH_SHORT).show(); return;
             }
-            if (!nmc.startsWith("NMC")) {
-                nmc = "NMC" + nmc;
-            }
-            Log.d("RegisterActivity", "Doctor NMC: " + nmc);
+            nmc = "NMC" + nmc;
         }
 
-        String knownDoctorNmc = etKnownDoctorNMC.getText().toString().trim().toUpperCase();
-        Log.d("RegisterActivity", "Known Doctor NMC field content: '" + knownDoctorNmc + "'");
-
-        if (!knownDoctorNmc.isEmpty() && !knownDoctorNmc.startsWith("NMC")) {
+        String knownDoctorNmc = etKnownDoctorNMC.getText().toString().trim().replaceAll("[^\\d]", "");
+        if (!knownDoctorNmc.isEmpty()) {
             knownDoctorNmc = "NMC" + knownDoctorNmc;
         }
 
         String finalNmc = nmc;
         String finalKnownDoctorNmc = knownDoctorNmc;
 
-        Log.d("RegisterActivity", "Final NMC: " + finalNmc);
-        Log.d("RegisterActivity", "Final Known Doctor NMC: '" + finalKnownDoctorNmc + "'");
-
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
                     if (authResult.getUser() != null) {
                         String uid = authResult.getUser().getUid();
+                        Log.d("RegisterActivity", "Firebase user created: " + uid);
+
                         Map<String, Object> userData = new HashMap<>();
                         userData.put("firstName", firstName);
                         userData.put("lastName", lastName);
                         userData.put("email", email);
                         userData.put("role", role);
 
-                        Log.d("RegisterActivity", "About to save user with role: " + role);
-                        Log.d("RegisterActivity", "Known doctor NMC is empty: " + finalKnownDoctorNmc.isEmpty());
-
                         if (role.equals("Doctor")) {
                             userData.put("nmcNumber", finalNmc);
-                            Log.d("RegisterActivity", "Saving doctor directly");
                             saveUserToFirestore(uid, userData, role);
                         } else if (role.equals("Patient") && !finalKnownDoctorNmc.isEmpty()) {
-                            Log.d("RegisterActivity", "Patient with known doctor - linking");
-                            linkToDoctor(finalKnownDoctorNmc, userData, uid, role);
+                            userData.put("linkedDoctorNmc", finalKnownDoctorNmc);
+
+                            db.collection("users").document(uid).set(userData)
+                                    .addOnSuccessListener(unused -> {
+                                        Log.d("RegisterActivity", "Initial patient document written. UID: " + uid);
+                                        linkToDoctor(finalKnownDoctorNmc, uid, role);
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.e("RegisterActivity", "Initial save failed: " + e.getMessage());
+                                        Toast.makeText(this, "Registration failed", Toast.LENGTH_SHORT).show();
+                                    });
                         } else {
-                            Log.d("RegisterActivity", "Saving user directly");
                             saveUserToFirestore(uid, userData, role);
                         }
                     }
@@ -179,57 +150,72 @@ public class RegisterActivity extends AppCompatActivity {
                 );
     }
 
-    private void linkToDoctor(String knownDoctorNmc, Map<String, Object> userData, String uid, String role) {
-        Log.d("RegisterActivity", "linkToDoctor called with NMC: " + knownDoctorNmc);
-        Toast.makeText(this, "Searching NMC: " + knownDoctorNmc, Toast.LENGTH_SHORT).show();
-
+    private void linkToDoctor(String knownDoctorNmc, String uid, String role) {
+        Log.d("RegisterActivity", "linkToDoctor() called with NMC: " + knownDoctorNmc);
         db.collection("users")
                 .whereEqualTo("nmcNumber", knownDoctorNmc)
                 .whereEqualTo("role", "Doctor")
                 .get()
                 .addOnSuccessListener(snapshots -> {
-                    Toast.makeText(this, "Query result: " + snapshots.size(), Toast.LENGTH_SHORT).show();
+                    Log.d("RegisterActivity", "Doctor query returned: " + snapshots.size() + " result(s)");
+
+                    Map<String, Object> update = new HashMap<>();
                     if (!snapshots.isEmpty()) {
                         DocumentSnapshot doc = snapshots.getDocuments().get(0);
-                        userData.put("linkedDoctorId", doc.getId());
-                        userData.put("linkedDoctorNmc", doc.getString("nmcNumber"));
+                        String doctorId = doc.getId();
+                        String doctorNmc = doc.getString("nmcNumber");
+
+                        Log.d("RegisterActivity", "Doctor found! ID: " + doctorId + ", NMC: " + doctorNmc);
+                        update.put("linkedDoctorId", doctorId);
+                        update.put("linkedDoctorNmc", doctorNmc);
                     } else {
-                        Toast.makeText(this, "Doctor with NMC " + knownDoctorNmc + " not found", Toast.LENGTH_LONG).show();
+                        Log.w("RegisterActivity", "No doctor found with NMC: " + knownDoctorNmc);
                     }
-                    saveUserToFirestore(uid, userData, role);
+
+                    db.collection("users").document(uid).update(update)
+                            .addOnSuccessListener(unused -> {
+                                Log.d("RegisterActivity", "Patient document updated with linked doctor.");
+                                redirectToDashboard(role);
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e("RegisterActivity", "Failed to update link: " + e.getMessage());
+                                Toast.makeText(this, "Registered without link", Toast.LENGTH_SHORT).show();
+                                redirectToDashboard(role);
+                            });
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error finding doctor: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    saveUserToFirestore(uid, userData, role);
+                    Log.e("RegisterActivity", "Error during doctor query: " + e.getMessage());
+                    Toast.makeText(this, "Error finding doctor", Toast.LENGTH_SHORT).show();
+                    redirectToDashboard(role);
                 });
     }
 
     private void saveUserToFirestore(String uid, Map<String, Object> userData, String role) {
-        Log.d("RegisterActivity", "saveUserToFirestore called with role: " + role);
-        Log.d("RegisterActivity", "User data: " + userData.toString());
-
         db.collection("users").document(uid).set(userData)
                 .addOnSuccessListener(unused -> {
+                    Log.d("RegisterActivity", "User data saved to Firestore.");
                     Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-                    Intent intent;
-                    switch (role) {
-                        case "Doctor":
-                            intent = new Intent(this, DoctorDashboardActivity.class);
-                            break;
-                        case "LabTechnician":
-                            intent = new Intent(this, LabTechnicianDashboardActivity.class);
-                            break;
-                        case "Patient":
-                        default:
-                            intent = new Intent(this, PatientDashboardActivity.class);
-                            break;
-                    }
-                    startActivity(intent);
-                    finish();
+                    redirectToDashboard(role);
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Failed to save user data: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                );
+                .addOnFailureListener(e -> {
+                    Log.e("RegisterActivity", "Failed to save user data: " + e.getMessage());
+                    Toast.makeText(this, "Failed to save user data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void redirectToDashboard(String role) {
+        Intent intent;
+        switch (role) {
+            case "Doctor":
+                intent = new Intent(this, DoctorDashboardActivity.class); break;
+            case "LabTechnician":
+                intent = new Intent(this, LabTechnicianDashboardActivity.class); break;
+            case "Patient":
+            default:
+                intent = new Intent(this, PatientDashboardActivity.class); break;
+        }
+        startActivity(intent);
+        finish();
     }
 
     private String capitalizeWords(String input) {
@@ -237,17 +223,9 @@ public class RegisterActivity extends AppCompatActivity {
         StringBuilder sb = new StringBuilder();
         for (String word : words) {
             if (!word.isEmpty()) {
-                sb.append(Character.toUpperCase(word.charAt(0)))
-                        .append(word.substring(1))
-                        .append(" ");
+                sb.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1)).append(" ");
             }
         }
         return sb.toString().trim();
     }
 }
-
-
-
-
-
-
