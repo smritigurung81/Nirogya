@@ -1,102 +1,141 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/layoutReportCard"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="10dp"
-    android:orientation="vertical"
-    android:background="@drawable/rounded_card"
-    android:padding="12dp">
+    android:layout_margin="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp"
+    android:background="#FFFFFF">
 
-    <!-- Report Header -->
-    <TextView
-        android:id="@+id/tvReportTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Report Title"
-        android:textStyle="bold"
-        android:textSize="18sp"
-        android:textColor="@android:color/black" />
-
-    <TextView
-        android:id="@+id/tvPatientName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Patient: Full Name"
-        android:textSize="14sp"
-        android:layout_marginTop="4dp" />
-
-    <TextView
-        android:id="@+id/tvReportType"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Type: CBC"
-        android:textSize="14sp" />
-
-    <TextView
-        android:id="@+id/tvTechnicianName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="By: Technician Name"
-        android:textSize="14sp" />
-
-    <!-- Expandable Details -->
     <LinearLayout
-        android:id="@+id/layoutReportDetails"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:visibility="gone"
-        android:layout_marginTop="10dp">
+        android:padding="12dp">
 
-        <!-- Header Row -->
-        <LinearLayout
+        <!-- Report Title -->
+        <TextView
+            android:id="@+id/tvReportTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingBottom="4dp">
+            android:text="Lab Report Title"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:layout_marginBottom="4dp" />
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Test"
-                android:textStyle="bold"
-                android:textColor="@android:color/black" />
+        <!-- Patient Name -->
+        <TextView
+            android:id="@+id/tvPatientName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Patient: --"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginBottom="2dp" />
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Value"
-                android:textStyle="bold"
-                android:textColor="@android:color/black" />
+        <!-- Report Type -->
+        <TextView
+            android:id="@+id/tvReportType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Type: --"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginBottom="2dp" />
 
-            <TextView
-                android:layout_width="0dp"
+        <!-- Technician Name -->
+        <TextView
+            android:id="@+id/tvTechnicianName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="By: --"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Expandable Details Section -->
+        <LinearLayout
+            android:id="@+id/layoutReportDetails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E0E0E0"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Table Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Normal Range"
-                android:textStyle="bold"
-                android:textColor="@android:color/black" />
+                android:orientation="horizontal"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Test"
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:textColor="#000000" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Value"
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:textColor="#000000" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Range"
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:textColor="#000000" />
+            </LinearLayout>
+
+            <!-- Dynamic container for test result rows -->
+            <LinearLayout
+                android:id="@+id/containerReportRows"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="8dp" />
         </LinearLayout>
 
-        <!-- Container for programmatically added rows -->
-        <LinearLayout
-            android:id="@+id/containerReportRows"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-
-        <!-- Remarks -->
+        <!-- Remarks: always visible below layoutReportDetails -->
         <TextView
             android:id="@+id/tvRemarks"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Remarks: Good"
+            android:text="Remarks: --"
             android:textSize="14sp"
+            android:textColor="#000000"
             android:textStyle="italic"
-            android:layout_marginTop="8dp"
-            android:textColor="@android:color/holo_red_dark" />
+            android:layout_marginTop="4dp" />
+
+        <!-- Legacy Hidden TextViews -->
+        <TextView android:id="@+id/tvHemoglobin" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Hemoglobin: --" android:textSize="14sp" android:textColor="#000000" android:layout_marginBottom="2dp" android:visibility="gone" />
+        <TextView android:id="@+id/tvWBC" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="WBC: --" android:textSize="14sp" android:textColor="#000000" android:layout_marginBottom="2dp" android:visibility="gone" />
+        <TextView android:id="@+id/tvPlatelets" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Platelets: --" android:textSize="14sp" android:textColor="#000000" android:layout_marginBottom="2dp" android:visibility="gone" />
+        <TextView android:id="@+id/tvHDL" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="HDL: --" android:textSize="14sp" android:textColor="#000000" android:layout_marginBottom="2dp" android:visibility="gone" />
+        <TextView android:id="@+id/tvLDL" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="LDL: --" android:textSize="14sp" android:textColor="#000000" android:layout_marginBottom="2dp" android:visibility="gone" />
+        <TextView android:id="@+id/tvTriglycerides" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Triglycerides: --" android:textSize="14sp" android:textColor="#000000" android:layout_marginBottom="2dp" android:visibility="gone" />
+        <TextView android:id="@+id/tvFastingSugar" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Fasting Sugar: --" android:textSize="14sp" android:textColor="#000000" android:layout_marginBottom="2dp" android:visibility="gone" />
+        <TextView android:id="@+id/tvPostSugar" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Postprandial Sugar: --" android:textSize="14sp" android:textColor="#000000" android:layout_marginBottom="2dp" android:visibility="gone" />
+        <TextView android:id="@+id/tvHbA1c" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="HbA1c: --" android:textSize="14sp" android:textColor="#000000" android:layout_marginBottom="8dp" android:visibility="gone" />
+
     </LinearLayout>
-</LinearLayout>
+</com.google.android.material.card.MaterialCardView>
