@@ -43,7 +43,7 @@ The system integrates **real-time data transmission**, **AI-powered health assis
 | Category        | Technologies Used                      |
 | --------------- | -------------------------------------- |
 | **Frontend**    | Java (Android), XML                    |
-| **Backend**     | Python, PHP, Firebase                  |
+| **Backend**     | Python, Firebase                  |
 | **Database**    | Firebase Realtime Database, Firestore  |
 | **AI/ML**       | Chatbot (NLP), Python-based processing |
 | **IoT Sensors** | Heart rate, Temperature, SpO₂ sensors  |
