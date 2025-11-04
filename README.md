@@ -1,4 +1,4 @@
-# 🩺 AI-Based Healthcare Monitoring System using IoT
+# 🩺 Nirogya - AI-Based Healthcare Monitoring System using IoT
 
 ## 📖 Overview
 
